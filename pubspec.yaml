@@ -38,6 +38,7 @@ dependencies:
   get:
   image_picker: ^0.8.5+3  
   geolocator: ^9.0.1
+  swipe_cards: ^1.0.0
 
 dev_dependencies:
   flutter_test:

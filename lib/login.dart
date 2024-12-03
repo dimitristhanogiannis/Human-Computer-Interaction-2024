@@ -1,3 +1,4 @@
+import 'package:camconnect/swipes.dart';
 import 'package:flutter/material.dart';
 import 'register.dart';  // Import the Register Screen
 
@@ -60,18 +61,19 @@ class _LoginScreenState extends State<LoginScreen> {
               // Login button
               ElevatedButton(
                 onPressed: () {
-                  // Handle login action here
-                  String username = _usernameController.text;
-                  String password = _passwordController.text;
-                  print('Logging in with username: $username and password: $password');
+                   // Navigate to SwipeScreen (replace with your swipe page widget)
+                   Navigator.push(
+                   context,
+                   MaterialPageRoute(builder: (context) => SwipePage()), // Replace SwipeScreen with your actual widget name
+                   );
                 },
-                child: const Text('Login'),
                 style: ElevatedButton.styleFrom(
                   minimumSize: Size(double.infinity, 50), // Full-width button
                   padding: const EdgeInsets.symmetric(vertical: 16.0),
                   backgroundColor: Colors.deepPurple,
                   textStyle: TextStyle(fontSize: 16),
                 ),
+                child: const Text('Login'),
               ),
               const SizedBox(height: 20),
 
@@ -84,11 +86,11 @@ class _LoginScreenState extends State<LoginScreen> {
                     MaterialPageRoute(builder: (context) => const SignUpScreen()), // Navigate to Register Screen
                   );
                 },
-                child: const Text('Don\'t have an account? Sign Up'),
                 style: TextButton.styleFrom(
                   foregroundColor: Colors.deepPurple,
                   textStyle: TextStyle(fontSize: 16),
                 ),
+                child: const Text('Don\'t have an account? Sign Up'),
               ),
             ],
           ),

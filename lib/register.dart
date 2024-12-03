@@ -67,13 +67,165 @@ class _SignUpScreenState extends State<SignUpScreen> {
         child: SingleChildScrollView(
           child: Column(
             children: [
+              // App Title
               Text(
                 'CamConnect',
                 style: Theme.of(context).textTheme.headlineMedium,
               ),
               const SizedBox(height: 20),
-              // Form Fields...
-              // (Include your existing fields for first name, last name, etc.)
+
+              // First Row: First Name & Last Name
+              Row(
+                children: [
+                  Expanded(
+                    child: TextField(
+                      controller: _firstNameController,
+                      decoration: InputDecoration(
+                        labelText: 'First Name',
+                        border: OutlineInputBorder(),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: TextField(
+                      controller: _lastNameController,
+                      decoration: InputDecoration(
+                        labelText: 'Last Name',
+                        border: OutlineInputBorder(),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 10),
+
+              // Second Row: Username & Password
+              Row(
+                children: [
+                  Expanded(
+                    child: TextField(
+                      controller: _usernameController,
+                      decoration: InputDecoration(
+                        labelText: 'Username',
+                        border: OutlineInputBorder(),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: TextField(
+                      controller: _passwordController,
+                      obscureText: true,
+                      decoration: InputDecoration(
+                        labelText: 'Password',
+                        border: OutlineInputBorder(),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 10),
+
+              // Third Row: Email & Phone Number
+              Row(
+                children: [
+                  Expanded(
+                    child: TextField(
+                      controller: _emailController,
+                      decoration: InputDecoration(
+                        labelText: 'Email',
+                        border: OutlineInputBorder(),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: TextField(
+                      controller: _phoneController,
+                      decoration: InputDecoration(
+                        labelText: 'Phone Number',
+                        border: OutlineInputBorder(),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 10),
+
+              // Fourth Row: Age & Bio
+              Row(
+                children: [
+                  Expanded(
+                    child: TextField(
+                      controller: _ageController,
+                      decoration: InputDecoration(
+                        labelText: 'Age',
+                        border: OutlineInputBorder(),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: TextField(
+                      controller: _bioController,
+                      decoration: InputDecoration(
+                        labelText: 'Bio',
+                        border: OutlineInputBorder(),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 10),
+
+              // Fifth Row: Sex & Preference
+              Row(
+                children: [
+                  Expanded(
+                    child: DropdownButtonFormField<String>(
+                      value: _sex,
+                      onChanged: (value) {
+                        setState(() {
+                          _sex = value!;
+                        });
+                      },
+                      items: ['Male', 'Female', 'Other']
+                          .map((sex) => DropdownMenuItem<String>(
+                                value: sex,
+                                child: Text(sex),
+                              ))
+                          .toList(),
+                      decoration: InputDecoration(
+                        labelText: 'Sex',
+                        border: OutlineInputBorder(),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: DropdownButtonFormField<String>(
+                      value: _preference,
+                      onChanged: (value) {
+                        setState(() {
+                          _preference = value!;
+                        });
+                      },
+                      items: ['Male', 'Female', 'Both']
+                          .map((preference) => DropdownMenuItem<String>(
+                                value: preference,
+                                child: Text(preference),
+                              ))
+                          .toList(),
+                      decoration: InputDecoration(
+                        labelText: 'Preference',
+                        border: OutlineInputBorder(),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 20),
 
               // Profile Photo Button
               ElevatedButton(
@@ -99,7 +251,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
               // Submit Button
               ElevatedButton(
                 onPressed: () {
-                  Navigator.pop(context); // Goes back to the login screen
+                  Navigator.pop(context); // Return to login screen
                 },
                 child: const Text('Submit'),
               ),
