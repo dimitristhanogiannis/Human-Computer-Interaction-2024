@@ -22,6 +22,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
   String _preference = 'Female';
   String _location = 'Location not selected';
   String? _profilePhoto;
+  bool useLocation = false;
 
   final ImagePicker _picker = ImagePicker();
 
@@ -227,26 +228,33 @@ class _SignUpScreenState extends State<SignUpScreen> {
               ),
               const SizedBox(height: 20),
 
-              // Profile Photo Button
-              ElevatedButton(
-                onPressed: _pickImage,
-                child: Text(_profilePhoto == null
-                    ? 'Add Profile Photo'
-                    : 'Change Profile Photo'),
-              ),
-              const SizedBox(height: 20),
-
-              // Location Button
-              ElevatedButton(
-                onPressed: _getLocation,
-                child: Text('Use Current Location'),
+              // Profile Photo & Use Location Row
+              Row(
+                children: [
+                  Expanded(
+                    child: ElevatedButton(
+                      onPressed: _pickImage,
+                      child: Text(_profilePhoto == null
+                          ? 'Add Profile Photo'
+                          : 'Change Profile Photo'),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: SwitchListTile(
+                      title: const Text('Use my location'),
+                      value: useLocation,
+                      onChanged: (bool value) {
+                        setState(() {
+                          useLocation = value;
+                          if (useLocation) _getLocation();
+                        });
+                      },
+                    ),
+                  ),
+                ],
               ),
               const SizedBox(height: 10),
-              Text(
-                _location,
-                style: TextStyle(color: Colors.grey),
-              ),
-              const SizedBox(height: 20),
 
               // Submit Button
               ElevatedButton(

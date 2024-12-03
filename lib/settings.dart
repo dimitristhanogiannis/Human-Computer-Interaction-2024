@@ -1,8 +1,5 @@
-import 'package:camconnect/leaderboard.dart';
-import 'package:camconnect/login.dart';
-import 'package:camconnect/matches.dart';
-import 'package:camconnect/swipes.dart';
 import 'package:flutter/material.dart';
+import 'package:geolocator/geolocator.dart';
 
 class SettingsScreen extends StatefulWidget {
   @override
@@ -11,10 +8,33 @@ class SettingsScreen extends StatefulWidget {
 
 class _SettingsScreenState extends State<SettingsScreen> {
   bool useLocation = true;
-  String sexPreference = "Not set";
+  String sexPreference = "Female";
   String username = "DefaultUsername";
   String bio = "This is my bio";
   String age = "25";
+  String _sex = 'Male';
+  String _preference = 'Female';
+  String _location = 'Location not selected';
+
+  // Function to get location
+  Future<void> _getLocation() async {
+    bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+    if (!serviceEnabled) {
+      print("Location services are disabled.");
+      return;
+    }
+
+    LocationPermission permission = await Geolocator.checkPermission();
+    if (permission == LocationPermission.deniedForever) {
+      return;
+    }
+
+    Position position = await Geolocator.getCurrentPosition(
+        desiredAccuracy: LocationAccuracy.high);
+    setState(() {
+      _location = 'Lat: ${position.latitude}, Lon: ${position.longitude}';
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -48,24 +68,29 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   onChanged: (bool value) {
                     setState(() {
                       useLocation = value;
+                      if (useLocation) _getLocation();
                     });
                   },
                 ),
                 _SettingsOption(
-                  title: 'Sex Preference: $sexPreference',
+                  title: 'Sex: $_sex',
                   onTap: () async {
-                    String? result = await _showInputDialog(context, 'Sex Preference', sexPreference);
-                    if (result != null) {
-                      setState(() {
-                        sexPreference = result;
-                      });
-                    }
+                    await _showDropdown(context, 'Sex', ['Male', 'Female', 'Other'], (value) {
+                      setState(() => _sex = value);
+                    });
+                  },
+                ),
+                _SettingsOption(
+                  title: 'Preference: $_preference',
+                  onTap: () async {
+                    await _showDropdown(context, 'Preference', ['Male', 'Female', 'Both'], (value) {
+                      setState(() => _preference = value);
+                    });
                   },
                 ),
                 _SettingsOption(
                   title: 'Change Profile Picture',
                   onTap: () {
-                    // Implement picture picker
                     print('Change Profile Picture');
                   },
                 ),
@@ -105,7 +130,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 _SettingsOption(
                   title: 'Change Password',
                   onTap: () {
-                    // Implement password change
                     print('Change Password');
                   },
                 ),
@@ -114,10 +138,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   child: ElevatedButton(
                     onPressed: () {
                       print('Logged out');
-                      Navigator.pushReplacement(
-                        context,
-                        MaterialPageRoute(builder: (context) => LoginScreen()),
-                      );
+                      Navigator.pushReplacementNamed(context, '/login');
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.red,
@@ -135,20 +156,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
         currentIndex: 0,
         onTap: (index) {
           if (index == 0) {
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(builder: (context) => SwipePage()),
-            );
+            Navigator.pushReplacementNamed(context, '/swipes');
           } else if (index == 1) {
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(builder: (context) => MatchesScreen()),
-            );
+            Navigator.pushReplacementNamed(context, '/matches');
           } else if (index == 2) {
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(builder: (context) => LeaderboardScreen()),
-            );
+            Navigator.pushReplacementNamed(context, '/leaderboard');
           }
         },
         items: const [
@@ -169,6 +181,31 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
+  Future<void> _showDropdown(
+    BuildContext context,
+    String title,
+    List<String> options,
+    ValueChanged<String> onSelected,
+  ) {
+    return showDialog(
+      context: context,
+      builder: (context) {
+        return SimpleDialog(
+          title: Text(title),
+          children: options
+              .map((option) => SimpleDialogOption(
+                    onPressed: () {
+                      onSelected(option);
+                      Navigator.pop(context);
+                    },
+                    child: Text(option),
+                  ))
+              .toList(),
+        );
+      },
+    );
+  }
+
   Future<String?> _showInputDialog(BuildContext context, String title, String initialValue) {
     TextEditingController controller = TextEditingController(text: initialValue);
     return showDialog<String>(
@@ -182,15 +219,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ),
           actions: [
             TextButton(
-              onPressed: () {
-                Navigator.of(context).pop(controller.text);
-              },
+              onPressed: () => Navigator.of(context).pop(controller.text),
               child: const Text('Save'),
             ),
             TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
+              onPressed: () => Navigator.of(context).pop(),
               child: const Text('Cancel'),
             ),
           ],
@@ -204,10 +237,7 @@ class _SettingsOption extends StatelessWidget {
   final String title;
   final VoidCallback onTap;
 
-  const _SettingsOption({
-    required this.title,
-    required this.onTap,
-  });
+  const _SettingsOption({required this.title, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -221,7 +251,3 @@ class _SettingsOption extends StatelessWidget {
     );
   }
 }
-
-
-
-

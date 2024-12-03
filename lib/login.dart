@@ -60,21 +60,22 @@ class _LoginScreenState extends State<LoginScreen> {
 
               // Login button
               ElevatedButton(
-                onPressed: () {
-                   // Navigate to SwipeScreen (replace with your swipe page widget)
-                   Navigator.push(
-                   context,
-                   MaterialPageRoute(builder: (context) => SwipePage()), // Replace SwipeScreen with your actual widget name
-                   );
-                },
-                style: ElevatedButton.styleFrom(
-                  minimumSize: Size(double.infinity, 50), // Full-width button
-                  padding: const EdgeInsets.symmetric(vertical: 16.0),
-                  backgroundColor: Colors.deepPurple,
-                  textStyle: TextStyle(fontSize: 16),
-                ),
-                child: const Text('Login'),
+                 onPressed: () {
+                 // Navigate to SwipeScreen (replace with your swipe page widget)
+                 Navigator.push(
+                 context,
+                 MaterialPageRoute(builder: (context) => SwipePage()), // Replace SwipeScreen with your actual widget name
+                 );
+                 },
+                 style: ElevatedButton.styleFrom(
+                 minimumSize: Size(double.infinity, 50), // Full-width button
+                 padding: const EdgeInsets.symmetric(vertical: 16.0),
+                 backgroundColor: Colors.deepPurple,
+                 textStyle: TextStyle(fontSize: 16),
+                 ),
+                 child: const Text('Login', style: TextStyle(color: Colors.white), ),
               ),
+
               const SizedBox(height: 20),
 
               // Sign-up button that navigates to Register Screen

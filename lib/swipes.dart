@@ -63,19 +63,19 @@ class _SwipePageState extends State<SwipePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Swipe Page"),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.settings),
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => SettingsScreen()),
-              );
-            },
-          ),
-        ],
-      ),
+           title: const Text("Swipe Page"),
+           centerTitle: true,
+           leading: IconButton(
+           icon: const Icon(Icons.settings),
+           onPressed: () {
+           Navigator.push(
+           context,
+           MaterialPageRoute(builder: (context) => SettingsScreen()),
+      );
+    },
+  ),
+),
+
       body: Column(
         children: [
           Expanded(
