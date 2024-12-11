@@ -1,0 +1,59 @@
+import 'dart:ui';
+
+import 'package:agora_rtc_engine/agora_rtc_engine.dart';
+import 'package:camconnect/video_call_widgets/app_bar.dart';
+import 'package:camconnect/video_call_widgets/call_function.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
+import 'package:native_screenshot/native_screenshot.dart';
+
+
+class CallPage extends StatefulWidget {
+  final String userName;
+  final String channelName;
+  CallPage(this.userName, this.channelName);
+  @override
+  _CallPageState createState() => _CallPageState();
+}
+
+class _CallPageState extends State<CallPage> {
+  late final RtcEngine _rtcEngine; // Declare rtcEngine
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+        appBar: AppBar(
+    backgroundColor: Color.fromRGBO(132, 174, 0,0.5),
+    title: Text('Hi '+ widget.userName +'!'),
+    elevation: 10,
+    leading: CircleAvatar(
+      backgroundImage: AssetImage('assets/profile_pic.png'),
+        radius: 10,
+        backgroundColor: Color.fromRGBO(255, 104, 220, 1),
+    ),
+    actions: <Widget>[
+      IconButton(
+        icon: Icon(Icons.image), 
+        onPressed: (){_capturePng();}
+      )
+    ],
+        ),
+        body: Stack(
+    // fit: StackFit.expand,
+    children: <Widget>[
+      VideoCall(widget.channelName),
+      Positioned(
+        bottom: 10,
+        left: 60,
+        child: StatusBar(rtcEngine: _rtcEngine),
+      ),
+    ],
+        ),
+        
+      );
+  }
+  Future<void> _capturePng() async {
+    String? path = await NativeScreenshot.takeScreenshot();
+    print(path);
+  }
+} 
