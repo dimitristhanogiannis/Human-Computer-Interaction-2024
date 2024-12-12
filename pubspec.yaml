@@ -38,10 +38,11 @@ dependencies:
   get:
   image_picker: ^1.1.2  
   geolocator: ^13.0.2
-  swipe_cards: ^2.0.0+1
-  agora_rtc_engine: ^6.5.0
-  permission_handler: 
+  swipe_cards: ^2.0.0+1 
   native_screenshot:  
+  agora_rtc_engine: ^5.3.0
+  permission_handler: ^8.1.1
+
 
 dev_dependencies:
   flutter_test:
