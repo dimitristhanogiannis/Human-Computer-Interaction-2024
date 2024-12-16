@@ -1,6 +1,7 @@
 import 'package:camconnect/swipes.dart';
 import 'package:flutter/material.dart';
-import 'register.dart';  // Import the Register Screen
+import 'register.dart'; // Import the Register Screen
+
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -12,6 +13,43 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController _usernameController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
+
+  Future<void> _login() async {
+    String username = _usernameController.text;
+    String password = _passwordController.text;
+
+    if (username.isEmpty || password.isEmpty) {
+      // Handle error if fields are empty
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Please enter both username and password')),
+      );
+      return;
+    }
+
+    // Test username and password values (for testing purposes)
+    // You can add more test cases as needed
+    Map<String, String> validCredentials = {
+      'testuser': 'password123',
+      'admin': 'admin123',
+      'user1': 'userpass1',
+    };
+
+    // Simulate login (replace this with actual login logic like API calls)
+    await Future.delayed(Duration(seconds: 2));  // Simulate a delay
+
+    // Check if entered username and password match valid credentials
+    if (validCredentials.containsKey(username) && validCredentials[username] == password) {
+    // If login is successful, navigate to the next page
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (context) => SwipePage()), // Navigate to the actual screen
+    );
+    }else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Invalid username or password')),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -60,20 +98,16 @@ class _LoginScreenState extends State<LoginScreen> {
 
               // Login button
               ElevatedButton(
-                 onPressed: () {
-                 // Navigate to SwipeScreen (replace with your swipe page widget)
-                 Navigator.push(
-                 context,
-                 MaterialPageRoute(builder: (context) => SwipePage()), // Replace SwipeScreen with your actual widget name
-                 );
+                 onPressed: () async {
+                   await _login();  // Call the asynchronous login function
                  },
                  style: ElevatedButton.styleFrom(
-                 minimumSize: Size(double.infinity, 50), // Full-width button
-                 padding: const EdgeInsets.symmetric(vertical: 16.0),
-                 backgroundColor: Colors.deepPurple,
-                 textStyle: TextStyle(fontSize: 16),
+                   minimumSize: Size(double.infinity, 50), // Full-width button
+                   padding: const EdgeInsets.symmetric(vertical: 16.0),
+                   backgroundColor: Colors.deepPurple,
+                   textStyle: TextStyle(fontSize: 16),
                  ),
-                 child: const Text('Login', style: TextStyle(color: Colors.white), ),
+                 child: const Text('Login', style: TextStyle(color: Colors.white)),
               ),
 
               const SizedBox(height: 20),
