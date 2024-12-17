@@ -7,7 +7,7 @@ import 'package:agora_rtc_engine/agora_rtc_engine.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 
-/*
+
 void main() {
   runApp(MyApp());
 }
@@ -33,8 +33,8 @@ class MyApp extends StatelessWidget {
     );
   }
 }
-*/
 
+/*
 //TEST
 void main() => runApp(MyApp());
 // Fill in the app ID obtained from the Agora Console
@@ -182,3 +182,5 @@ class _MyAppState extends State<MyApp> {
     }
   }
 }
+
+*/
