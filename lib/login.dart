@@ -34,7 +34,7 @@ class _LoginScreenState extends State<LoginScreen> {
     };
 
     // Simulate login (replace this with actual login logic like API calls)
-    await Future.delayed(Duration(seconds: 2));  // Simulate a delay
+    await Future.delayed(Duration(seconds: 0));  // Simulate a delay
 
     // Check if entered username and password match valid credentials
     if (validCredentials.containsKey(username) && validCredentials[username] == password) {
