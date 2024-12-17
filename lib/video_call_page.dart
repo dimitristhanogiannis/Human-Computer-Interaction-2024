@@ -23,6 +23,8 @@ class _VideoCallPageState extends State<VideoCallPage> {
   int? _remoteUid;
   bool _localUserJoined = false;
   late RtcEngine _engine;
+  bool _isMuted = false; // Track mute state
+  bool _isCameraOff = false; // Track camera state
 
   @override
   void initState() {
@@ -117,6 +119,42 @@ class _VideoCallPageState extends State<VideoCallPage> {
                           ),
                         )
                       : const CircularProgressIndicator(),
+                ),
+              ),
+            ),
+            Align( // Align buttons at the bottom
+              alignment: Alignment.bottomCenter,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 20),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  children: [
+                    ElevatedButton(
+                      onPressed: () {
+                        setState(() {
+                          _isMuted = !_isMuted;
+                        });
+                        _engine.muteLocalAudioStream(_isMuted); 
+                      },
+                      child: Icon(_isMuted ? Icons.mic_off : Icons.mic),
+                    ),
+                    ElevatedButton(
+                      onPressed: () {
+                        setState(() {
+                          _isCameraOff = !_isCameraOff;
+                        });
+                        _engine.enableLocalVideo(!_isCameraOff); 
+                      },
+                      child: Icon(_isCameraOff ? Icons.videocam_off : Icons.videocam),
+                    ),
+                    ElevatedButton(
+                      onPressed: () {
+                        Navigator.pop(context); // End call (go back)
+                      },
+                      child: const Icon(Icons.call_end),
+                      style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+                    ),
+                  ],
                 ),
               ),
             ),
