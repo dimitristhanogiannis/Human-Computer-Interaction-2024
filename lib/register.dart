@@ -84,6 +84,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
                       decoration: InputDecoration(
                         labelText: 'First Name',
                         border: OutlineInputBorder(),
+                        filled: true,
+                        fillColor: const Color(0xFFE0E0E0),
                       ),
                     ),
                   ),
@@ -94,6 +96,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
                       decoration: InputDecoration(
                         labelText: 'Last Name',
                         border: OutlineInputBorder(),
+                        filled: true,
+                        fillColor: const Color(0xFFE0E0E0),
                       ),
                     ),
                   ),
@@ -110,6 +114,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
                       decoration: InputDecoration(
                         labelText: 'Username',
                         border: OutlineInputBorder(),
+                        filled: true,
+                        fillColor: const Color(0xFFE0E0E0),
                       ),
                     ),
                   ),
@@ -121,6 +127,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
                       decoration: InputDecoration(
                         labelText: 'Password',
                         border: OutlineInputBorder(),
+                        filled: true,
+                        fillColor: const Color(0xFFE0E0E0),
                       ),
                     ),
                   ),
@@ -137,6 +145,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
                       decoration: InputDecoration(
                         labelText: 'Email',
                         border: OutlineInputBorder(),
+                        filled: true,
+                        fillColor: const Color(0xFFE0E0E0),
                       ),
                     ),
                   ),
@@ -147,6 +157,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
                       decoration: InputDecoration(
                         labelText: 'Phone Number',
                         border: OutlineInputBorder(),
+                        filled: true,
+                        fillColor: const Color(0xFFE0E0E0),
                       ),
                     ),
                   ),
@@ -163,6 +175,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
                       decoration: InputDecoration(
                         labelText: 'Age',
                         border: OutlineInputBorder(),
+                        filled: true,
+                        fillColor: const Color(0xFFE0E0E0),
                       ),
                     ),
                   ),
@@ -173,6 +187,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
                       decoration: InputDecoration(
                         labelText: 'Bio',
                         border: OutlineInputBorder(),
+                        filled: true,
+                        fillColor: const Color(0xFFE0E0E0),
                       ),
                     ),
                   ),
@@ -200,6 +216,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
                       decoration: InputDecoration(
                         labelText: 'Sex',
                         border: OutlineInputBorder(),
+                        filled: true,
+                        fillColor: const Color(0xFFE0E0E0),
                       ),
                     ),
                   ),
@@ -221,6 +239,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
                       decoration: InputDecoration(
                         labelText: 'Preference',
                         border: OutlineInputBorder(),
+                        filled: true,
+                        fillColor: const Color(0xFFE0E0E0),
                       ),
                     ),
                   ),
@@ -234,6 +254,13 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   Expanded(
                     child: ElevatedButton(
                       onPressed: _pickImage,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF7B1FA2),
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(25),
+                        ),
+                      ),
                       child: Text(_profilePhoto == null
                           ? 'Add Profile Photo'
                           : 'Change Profile Photo'),
@@ -250,6 +277,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                           if (useLocation) _getLocation();
                         });
                       },
+                      activeColor: const Color(0xFF7B1FA2),
                     ),
                   ),
                 ],
@@ -259,9 +287,17 @@ class _SignUpScreenState extends State<SignUpScreen> {
               // Submit Button
               ElevatedButton(
                 onPressed: () {
-                  Navigator.pop(context); // Return to login screen
+                  // Implement sign-up logic here
                 },
-                child: const Text('Submit'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF7B1FA2),
+                  foregroundColor: Colors.white,
+                  minimumSize: const Size(double.infinity, 50),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(25),
+                  ),
+                ),
+                child: const Text('Submit', style: TextStyle(fontSize: 18)),
               ),
             ],
           ),
