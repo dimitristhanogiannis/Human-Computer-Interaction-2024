@@ -26,7 +26,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
   final ImagePicker _picker = ImagePicker();
 
-  // Pick Image (Profile photo)
   Future<void> _pickImage() async {
     final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
     if (image != null) {
@@ -36,7 +35,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
     }
   }
 
-  // Function to get location
   Future<void> _getLocation() async {
     bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
     if (!serviceEnabled) {
@@ -68,24 +66,19 @@ class _SignUpScreenState extends State<SignUpScreen> {
         child: SingleChildScrollView(
           child: Column(
             children: [
-              // App Title
               Text(
                 'CamConnect',
                 style: Theme.of(context).textTheme.headlineMedium,
               ),
               const SizedBox(height: 20),
-
-              // First Row: First Name & Last Name
               Row(
                 children: [
                   Expanded(
                     child: TextField(
                       controller: _firstNameController,
-                      decoration: InputDecoration(
+                      decoration: const InputDecoration(
                         labelText: 'First Name',
                         border: OutlineInputBorder(),
-                        filled: true,
-                        fillColor: const Color(0xFFE0E0E0),
                       ),
                     ),
                   ),
@@ -93,29 +86,23 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   Expanded(
                     child: TextField(
                       controller: _lastNameController,
-                      decoration: InputDecoration(
+                      decoration: const InputDecoration(
                         labelText: 'Last Name',
                         border: OutlineInputBorder(),
-                        filled: true,
-                        fillColor: const Color(0xFFE0E0E0),
                       ),
                     ),
                   ),
                 ],
               ),
               const SizedBox(height: 10),
-
-              // Second Row: Username & Password
               Row(
                 children: [
                   Expanded(
                     child: TextField(
                       controller: _usernameController,
-                      decoration: InputDecoration(
+                      decoration: const InputDecoration(
                         labelText: 'Username',
                         border: OutlineInputBorder(),
-                        filled: true,
-                        fillColor: const Color(0xFFE0E0E0),
                       ),
                     ),
                   ),
@@ -124,29 +111,23 @@ class _SignUpScreenState extends State<SignUpScreen> {
                     child: TextField(
                       controller: _passwordController,
                       obscureText: true,
-                      decoration: InputDecoration(
+                      decoration: const InputDecoration(
                         labelText: 'Password',
                         border: OutlineInputBorder(),
-                        filled: true,
-                        fillColor: const Color(0xFFE0E0E0),
                       ),
                     ),
                   ),
                 ],
               ),
               const SizedBox(height: 10),
-
-              // Third Row: Email & Phone Number
               Row(
                 children: [
                   Expanded(
                     child: TextField(
                       controller: _emailController,
-                      decoration: InputDecoration(
+                      decoration: const InputDecoration(
                         labelText: 'Email',
                         border: OutlineInputBorder(),
-                        filled: true,
-                        fillColor: const Color(0xFFE0E0E0),
                       ),
                     ),
                   ),
@@ -154,29 +135,23 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   Expanded(
                     child: TextField(
                       controller: _phoneController,
-                      decoration: InputDecoration(
+                      decoration: const InputDecoration(
                         labelText: 'Phone Number',
                         border: OutlineInputBorder(),
-                        filled: true,
-                        fillColor: const Color(0xFFE0E0E0),
                       ),
                     ),
                   ),
                 ],
               ),
               const SizedBox(height: 10),
-
-              // Fourth Row: Age & Bio
               Row(
                 children: [
                   Expanded(
                     child: TextField(
                       controller: _ageController,
-                      decoration: InputDecoration(
+                      decoration: const InputDecoration(
                         labelText: 'Age',
                         border: OutlineInputBorder(),
-                        filled: true,
-                        fillColor: const Color(0xFFE0E0E0),
                       ),
                     ),
                   ),
@@ -184,19 +159,15 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   Expanded(
                     child: TextField(
                       controller: _bioController,
-                      decoration: InputDecoration(
+                      decoration: const InputDecoration(
                         labelText: 'Bio',
                         border: OutlineInputBorder(),
-                        filled: true,
-                        fillColor: const Color(0xFFE0E0E0),
                       ),
                     ),
                   ),
                 ],
               ),
               const SizedBox(height: 10),
-
-              // Fifth Row: Sex & Preference
               Row(
                 children: [
                   Expanded(
@@ -213,11 +184,9 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                 child: Text(sex),
                               ))
                           .toList(),
-                      decoration: InputDecoration(
+                      decoration: const InputDecoration(
                         labelText: 'Sex',
                         border: OutlineInputBorder(),
-                        filled: true,
-                        fillColor: const Color(0xFFE0E0E0),
                       ),
                     ),
                   ),
@@ -236,31 +205,20 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                 child: Text(preference),
                               ))
                           .toList(),
-                      decoration: InputDecoration(
+                      decoration: const InputDecoration(
                         labelText: 'Preference',
                         border: OutlineInputBorder(),
-                        filled: true,
-                        fillColor: const Color(0xFFE0E0E0),
                       ),
                     ),
                   ),
                 ],
               ),
               const SizedBox(height: 20),
-
-              // Profile Photo & Use Location Row
               Row(
                 children: [
                   Expanded(
                     child: ElevatedButton(
                       onPressed: _pickImage,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF7B1FA2),
-                        foregroundColor: Colors.white,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(25),
-                        ),
-                      ),
                       child: Text(_profilePhoto == null
                           ? 'Add Profile Photo'
                           : 'Change Profile Photo'),
@@ -277,27 +235,16 @@ class _SignUpScreenState extends State<SignUpScreen> {
                           if (useLocation) _getLocation();
                         });
                       },
-                      activeColor: const Color(0xFF7B1FA2),
                     ),
                   ),
                 ],
               ),
               const SizedBox(height: 10),
-
-              // Submit Button
               ElevatedButton(
                 onPressed: () {
-                  // Implement sign-up logic here
+                  Navigator.pop(context);
                 },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF7B1FA2),
-                  foregroundColor: Colors.white,
-                  minimumSize: const Size(double.infinity, 50),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(25),
-                  ),
-                ),
-                child: const Text('Submit', style: TextStyle(fontSize: 18)),
+                child: const Text('Submit'),
               ),
             ],
           ),
