@@ -2,6 +2,7 @@ import 'package:camconnect/leaderboard.dart';
 import 'package:camconnect/settings.dart';
 import 'package:camconnect/swipes.dart';
 import 'package:flutter/material.dart';
+import 'package:camconnect/video_call_page.dart';
 
 class MatchesScreen extends StatelessWidget {
   final List<Map<String, String>> dummyMatches = [
@@ -137,14 +138,20 @@ class MatchCard extends StatelessWidget {
               children: [
                 ElevatedButton(
                   onPressed: () {
-                    // Handle video call
-                    print('Video Call with $name');
+                  Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                  builder: (context) => VideoCallPage(
+                  channelName: "channel",
+                  ),
+                  ),
+                  );
                   },
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.green,
-                    padding: const EdgeInsets.symmetric(horizontal: 10),
+                  backgroundColor: Colors.green,
+                  padding: const EdgeInsets.symmetric(horizontal: 10),
                   ),
-                  child: const Icon(Icons.videocam),
+                 child: const Icon(Icons.videocam),
                 ),
                 ElevatedButton(
                   onPressed: () {
