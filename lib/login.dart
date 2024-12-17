@@ -1,7 +1,6 @@
 import 'package:camconnect/swipes.dart';
 import 'package:flutter/material.dart';
-import 'register.dart'; // Import the Register Screen
-
+import 'register.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -53,82 +52,106 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
+    const Color lightGray = Color(0xFFE0E0E0);
+    const Color deepPurple = Color(0xFF7B1FA2);
+
     return Scaffold(
+      backgroundColor: Colors.white,
       appBar: AppBar(
-        title: const Text('CamConnect Login'),
-        centerTitle: true,
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        toolbarHeight: 160.0, // Increased significantly
       ),
       body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              // Icon at the top
-              Icon(
-                Icons.video_call,
-                size: 100,
-                color: Colors.deepPurple,
-              ),
-              const SizedBox(height: 20),
-
-              // Username text field
-              TextField(
-                controller: _usernameController,
-                decoration: InputDecoration(
-                  labelText: 'Username',
-                  border: OutlineInputBorder(),
-                  prefixIcon: Icon(Icons.person),
+        padding: const EdgeInsets.symmetric(horizontal: 24.0),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Padding(
+              padding: const EdgeInsets.only(top: 40.0), // Further adjustment
+              child: Center(
+                child: Text(
+                  'CamConnect',
+                  style: TextStyle(
+                    fontSize: 36,
+                    fontWeight: FontWeight.w500,
+                    color: deepPurple,
+                  ),
                 ),
               ),
-              const SizedBox(height: 10),
-
-              // Password text field
-              TextField(
-                controller: _passwordController,
-                obscureText: true,
-                decoration: InputDecoration(
-                  labelText: 'Password',
-                  border: OutlineInputBorder(),
-                  prefixIcon: Icon(Icons.lock),
+            ),
+            const SizedBox(height: 120), // Huge gap to push fields down
+            Expanded(
+              child: SingleChildScrollView(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    TextFormField(
+                      controller: _usernameController,
+                      decoration: InputDecoration(
+                        labelText: 'Username', // Back to labelText
+                        border: OutlineInputBorder( // Back to OutlineInputBorder
+                          borderRadius: BorderRadius.circular(10),
+                          borderSide: BorderSide.none,
+                        ),
+                        filled: true,
+                        fillColor: lightGray,
+                        prefixIcon: const Icon(Icons.person),
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                    TextFormField(
+                      controller: _passwordController,
+                      obscureText: true,
+                      decoration: InputDecoration(
+                        labelText: 'Password', // Back to labelText
+                        border: OutlineInputBorder( // Back to OutlineInputBorder
+                          borderRadius: BorderRadius.circular(10),
+                          borderSide: BorderSide.none,
+                        ),
+                        filled: true,
+                        fillColor: lightGray,
+                        prefixIcon: const Icon(Icons.lock),
+                      ),
+                    ),
+                    const SizedBox(height: 60),
+                    ElevatedButton(
+                      onPressed: _login,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: deepPurple,
+                        foregroundColor: Colors.white,
+                        minimumSize: const Size(double.infinity, 50),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(25),
+                        ),
+                      ),
+                      child: const Text('Login', style: TextStyle(fontSize: 18)),
+                    ),
+                    const SizedBox(height: 20),
+                    ElevatedButton(
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => const SignUpScreen()),
+                        );
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: deepPurple,
+                        foregroundColor: Colors.white,
+                        minimumSize: const Size(double.infinity, 50),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(25),
+                        ),
+                      ),
+                      child: const Text('Sign Up', style: TextStyle(fontSize: 18)),
+                    ),
+                  ],
                 ),
               ),
-              const SizedBox(height: 20),
-
-              // Login button
-              ElevatedButton(
-                 onPressed: () async {
-                   await _login();  // Call the asynchronous login function
-                 },
-                 style: ElevatedButton.styleFrom(
-                   minimumSize: Size(double.infinity, 50), // Full-width button
-                   padding: const EdgeInsets.symmetric(vertical: 16.0),
-                   backgroundColor: Colors.deepPurple,
-                   textStyle: TextStyle(fontSize: 16),
-                 ),
-                 child: const Text('Login', style: TextStyle(color: Colors.white)),
-              ),
-
-              const SizedBox(height: 20),
-
-              // Sign-up button that navigates to Register Screen
-              TextButton(
-                onPressed: () {
-                  // Navigate to SignUp Screen
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => const SignUpScreen()), // Navigate to Register Screen
-                  );
-                },
-                style: TextButton.styleFrom(
-                  foregroundColor: Colors.deepPurple,
-                  textStyle: TextStyle(fontSize: 16),
-                ),
-                child: const Text('Don\'t have an account? Sign Up'),
-              ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
