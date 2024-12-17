@@ -1,14 +1,15 @@
-// video_call_page.dart 
+// video_call_page.dart
 import 'package:flutter/material.dart';
 import 'dart:async';
 import 'package:agora_rtc_engine/agora_rtc_engine.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 // Fill in the app ID obtained from the Agora Console
-const appId = "4d3c0d2539e849ffa231cf29a7abe5c4"; 
+const appId = "4d3c0d2539e849ffa231cf29a7abe5c4";
 
 // Replace with your temporary token generated in the Agora Console
-const token = "007eJxTYIi2NGdwbMs7njXje/A9n2bNXa/mzEvv2nFEjv+tf4t4V5MCg0mKcbJBipGpsWWqhYllWlqikbFhcpqRZaJ5YlKqabLJvyMJ6Q2BjAwhbzlYGRkgEMRnZ0jOSMzLS81hYAAApsAhBg=="; 
+const token =
+    "007eJxTYIi2NGdwbMs7njXje/A9n2bNXa/mzEvv2nFEjv+tf4t4V5MCg0mKcbJBipGpsWWqhYllWlqikbFhcpqRZaJ5YlKqabLJvyMJ6Q2BjAwhbzlYGRkgEMRnZ0jOSMzLS81hYAAApsAhBg==";
 
 class VideoCallPage extends StatefulWidget {
   final String channelName; // Add channelName parameter
@@ -45,36 +46,35 @@ class _VideoCallPageState extends State<VideoCallPage> {
       channelProfile: ChannelProfileType.channelProfileCommunication,
     ));
 
-    _engine.registerEventHandler(
-      RtcEngineEventHandler(
-        onJoinChannelSuccess: (RtcConnection connection, int elapsed) {
-          debugPrint('local user ${connection.localUid} joined');
-          setState(() {
-            _localUserJoined = true;
-          });
-        },
-        onUserJoined: (RtcConnection connection, int remoteUid, int elapsed) {
-          debugPrint("remote user $remoteUid joined");
-          setState(() {
-            _remoteUid = remoteUid;
-          });
-        },
-        onUserOffline: (RtcConnection connection, int remoteUid, UserOfflineReasonType reason) {
-          debugPrint("remote user $remoteUid left channel");
-          setState(() {
-            _remoteUid = null;
-          });
-        },
-      ),
-    );
+    _engine.registerEventHandler(RtcEngineEventHandler(
+      onJoinChannelSuccess: (RtcConnection connection, int elapsed) {
+        debugPrint('local user ${connection.localUid} joined');
+        setState(() {
+          _localUserJoined = true;
+        });
+      },
+      onUserJoined: (RtcConnection connection, int remoteUid, int elapsed) {
+        debugPrint("remote user $remoteUid joined");
+        setState(() {
+          _remoteUid = remoteUid;
+        });
+      },
+      onUserOffline: (RtcConnection connection, int remoteUid,
+          UserOfflineReasonType reason) {
+        debugPrint("remote user $remoteUid left channel");
+        setState(() {
+          _remoteUid = null;
+        });
+      },
+    ));
 
     await _engine.enableVideo();
     await _engine.startPreview();
 
     // Join the channel dynamically with the channelName passed from MatchesScreen
     await _engine.joinChannel(
-      token: token, 
-      channelId: widget.channelName, 
+      token: token,
+      channelId: widget.channelName,
       options: const ChannelMediaOptions(
         clientRoleType: ClientRoleType.clientRoleBroadcaster,
         autoSubscribeAudio: true,
@@ -98,7 +98,7 @@ class _VideoCallPageState extends State<VideoCallPage> {
     return MaterialApp(
       home: Scaffold(
         appBar: AppBar(
-          title: const Text('Agora Video Call'),
+          title: const Text('Video Call'),
         ),
         body: Stack(
           children: [
@@ -112,17 +112,25 @@ class _VideoCallPageState extends State<VideoCallPage> {
                 height: 150,
                 child: Center(
                   child: _localUserJoined
-                      ? AgoraVideoView(
-                          controller: VideoViewController(
-                            rtcEngine: _engine,
-                            canvas: const VideoCanvas(uid: 0),
-                          ),
-                        )
+                      ? (_isCameraOff
+                          ? Container(
+                              color: Colors.grey,
+                              child: const Center(
+                                child: Icon(Icons.videocam_off, size: 40),
+                              ),
+                            )
+                          : AgoraVideoView(
+                              controller: VideoViewController(
+                                rtcEngine: _engine,
+                                canvas: const VideoCanvas(uid: 0),
+                              ),
+                            ))
                       : const CircularProgressIndicator(),
                 ),
               ),
             ),
-            Align( // Align buttons at the bottom
+            Align(
+              // Align buttons at the bottom
               alignment: Alignment.bottomCenter,
               child: Padding(
                 padding: const EdgeInsets.symmetric(vertical: 20),
@@ -134,7 +142,7 @@ class _VideoCallPageState extends State<VideoCallPage> {
                         setState(() {
                           _isMuted = !_isMuted;
                         });
-                        _engine.muteLocalAudioStream(_isMuted); 
+                        _engine.muteLocalAudioStream(_isMuted);
                       },
                       child: Icon(_isMuted ? Icons.mic_off : Icons.mic),
                     ),
@@ -143,9 +151,11 @@ class _VideoCallPageState extends State<VideoCallPage> {
                         setState(() {
                           _isCameraOff = !_isCameraOff;
                         });
-                        _engine.enableLocalVideo(!_isCameraOff); 
+                        _engine.enableLocalVideo(!_isCameraOff);
                       },
-                      child: Icon(_isCameraOff ? Icons.videocam_off : Icons.videocam),
+                      child: Icon(_isCameraOff
+                          ? Icons.videocam_off
+                          : Icons.videocam),
                     ),
                     ElevatedButton(
                       onPressed: () {
@@ -170,12 +180,13 @@ class _VideoCallPageState extends State<VideoCallPage> {
         controller: VideoViewController.remote(
           rtcEngine: _engine,
           canvas: VideoCanvas(uid: _remoteUid),
-          connection: RtcConnection(channelId: widget.channelName), // Use dynamic channel name
+          connection:
+              RtcConnection(channelId: widget.channelName), // Use dynamic channel name
         ),
       );
     } else {
       return const Text(
-        'Please wait for remote user to join',
+        'Please wait for user to join',
         textAlign: TextAlign.center,
       );
     }
