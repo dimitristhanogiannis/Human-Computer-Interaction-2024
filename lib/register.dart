@@ -38,25 +38,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
       });
     }
   }
-/*
-  Future<void> _getLocation() async {
-    bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
-    if (!serviceEnabled) {
-      print("Location services are disabled.");
-      return;
-    }
 
-    LocationPermission permission = await Geolocator.checkPermission();
-    if (permission == LocationPermission.deniedForever) {
-      return;
-    }
-
-    Position position = await Geolocator.getCurrentPosition(
-        desiredAccuracy: LocationAccuracy.high);
-    setState(() {
-      _location = 'Lat: ${position.latitude}, Lon: ${position.longitude}';
-    });
-  }*/
 
   StreamSubscription<Position>? _positionStreamSubscription; 
 

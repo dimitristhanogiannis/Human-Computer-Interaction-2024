@@ -8,8 +8,7 @@ import 'package:permission_handler/permission_handler.dart';
 const appId = "4d3c0d2539e849ffa231cf29a7abe5c4";
 
 // Replace with your temporary token generated in the Agora Console
-const token =
-    "007eJxTYEhxeXX6qJ91U4JZxb1ms5dx62Nk/ogpMv1q73DTTr6jm6vAYJJinGyQYmRqbJlqYWKZlpZoZGyYnGZkmWiemJRqmmySsiMpvSGQkcFgSQkjIwMEgvjsDMkZiXl5qTkMDAB71x/h";
+const token = "007eJxTYEhxeXX6qJ91U4JZxb1ms5dx62Nk/ogpMv1q73DTTr6jm6vAYJJinGyQYmRqbJlqYWKZlpZoZGyYnGZkmWiemJRqmmySsiMpvSGQkcFgSQkjIwMEgvjsDMkZiXl5qTkMDAB71x/h";
 
 class VideoCallPage extends StatefulWidget {
   final String channelName; // Add channelName parameter
