@@ -15,14 +15,21 @@ class LeaderboardScreen extends StatelessWidget {
     {"name": "Pat", "points": 920, "image": "assets/user8.jpg", "isCurrentUser": false},
   ];
 
+  static const Color deepPurple = Color(0xFF7B1FA2);
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Leaderboard'),
+        title: const Text(
+          'Leaderboard',
+          style: TextStyle(fontSize: 30, color: deepPurple, fontWeight: FontWeight.bold),
+        ),
         centerTitle: true,
+        backgroundColor: Colors.transparent,
+        elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.settings),
+          icon: const Icon(Icons.settings, color: deepPurple),
           onPressed: () {
             Navigator.push(
               context,
@@ -39,25 +46,69 @@ class LeaderboardScreen extends StatelessWidget {
           return Card(
             color: user["isCurrentUser"] ? Colors.blue.shade100 : Colors.white,
             margin: const EdgeInsets.symmetric(vertical: 8),
-            child: ListTile(
-              leading: CircleAvatar(
-                backgroundImage: AssetImage(user["image"]),
-              ),
-              title: Text(
-                user["name"],
-                style: TextStyle(
-                  fontWeight: user["isCurrentUser"] ? FontWeight.bold : FontWeight.normal,
-                ),
-              ),
-              trailing: Text(
-                '${user["points"]} pts',
-                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+              child: Row(
+                children: [
+                  // User name with more space
+                  Expanded(
+                    flex: 3,
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: deepPurple,
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+                      child: Text(
+                        user["name"],
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 16, // Slightly reduced font size
+                          fontWeight: FontWeight.bold,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  // User image in the center
+                  Expanded(
+                    flex: 2,
+                    child: CircleAvatar(
+                      radius: 40,
+                      backgroundImage: AssetImage(user["image"]),
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  // User score with more space
+                  Expanded(
+                    flex: 3,
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: deepPurple,
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+                      child: Text(
+                        '${user["points"]} pts',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 16, // Slightly reduced font size
+                          fontWeight: FontWeight.bold,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
           );
         },
       ),
       bottomNavigationBar: BottomNavigationBar(
+        selectedItemColor: Colors.white,
+        unselectedItemColor: deepPurple,
         currentIndex: 2, // Leaderboard tab selected
         onTap: (index) {
           if (index == 0) {
@@ -77,23 +128,42 @@ class LeaderboardScreen extends StatelessWidget {
             );
           }
         },
-        items: const [
+        items: [
           BottomNavigationBarItem(
-            icon: Icon(Icons.swipe),
-            label: 'Swipe',
+            icon: const Icon(
+              Icons.favorite,
+              size: 24,
+            ),
+            label: "",
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.videocam),
-            label: 'Matches',
+            icon: const Icon(
+              Icons.video_call,
+              color: deepPurple,
+              size: 24,
+            ),
+            label: "",
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.leaderboard),
-            label: 'Leaderboard',
+            icon: ClipRRect(
+              borderRadius: BorderRadius.circular(50),
+              child: Container(
+                height: 40,
+                width: 80,
+                color: deepPurple, // Only Leaderboard button gets purple field
+                child: const Center(
+                  child: Icon(
+                    Icons.groups,
+                    color: Colors.white,
+                    size: 24,
+                  ),
+                ),
+              ),
+            ),
+            label: "",
           ),
         ],
       ),
     );
   }
 }
-
-
