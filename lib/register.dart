@@ -26,6 +26,9 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
   final ImagePicker _picker = ImagePicker();
 
+  static const Color lightGray = Color(0xFFE0E0E0);
+  static const Color deepPurple = Color(0xFF7B1FA2);
+
   Future<void> _pickImage() async {
     final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
     if (image != null) {
@@ -58,19 +61,29 @@ class _SignUpScreenState extends State<SignUpScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('CamConnect Sign Up'),
-        centerTitle: true,
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        toolbarHeight: 0, // Remove the app bar space
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: SingleChildScrollView(
           child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                'CamConnect',
-                style: Theme.of(context).textTheme.headlineMedium,
+              // CamConnect logo
+              Center(
+                child: Text(
+                  'CamConnect',
+                  style: TextStyle(
+                    fontSize: 36,
+                    fontWeight: FontWeight.w500,
+                    color: deepPurple,
+                  ),
+                ),
               ),
-              const SizedBox(height: 20),
+              // Add extra space below the logo
+              const SizedBox(height: 120),
               Row(
                 children: [
                   Expanded(
@@ -79,6 +92,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
                       decoration: const InputDecoration(
                         labelText: 'First Name',
                         border: OutlineInputBorder(),
+                        filled: true,
+                        fillColor: lightGray,
                       ),
                     ),
                   ),
@@ -89,6 +104,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
                       decoration: const InputDecoration(
                         labelText: 'Last Name',
                         border: OutlineInputBorder(),
+                        filled: true,
+                        fillColor: lightGray,
                       ),
                     ),
                   ),
@@ -103,6 +120,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
                       decoration: const InputDecoration(
                         labelText: 'Username',
                         border: OutlineInputBorder(),
+                        filled: true,
+                        fillColor: lightGray,
                       ),
                     ),
                   ),
@@ -114,6 +133,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
                       decoration: const InputDecoration(
                         labelText: 'Password',
                         border: OutlineInputBorder(),
+                        filled: true,
+                        fillColor: lightGray,
                       ),
                     ),
                   ),
@@ -128,6 +149,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
                       decoration: const InputDecoration(
                         labelText: 'Email',
                         border: OutlineInputBorder(),
+                        filled: true,
+                        fillColor: lightGray,
                       ),
                     ),
                   ),
@@ -138,6 +161,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
                       decoration: const InputDecoration(
                         labelText: 'Phone Number',
                         border: OutlineInputBorder(),
+                        filled: true,
+                        fillColor: lightGray,
                       ),
                     ),
                   ),
@@ -152,6 +177,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
                       decoration: const InputDecoration(
                         labelText: 'Age',
                         border: OutlineInputBorder(),
+                        filled: true,
+                        fillColor: lightGray,
                       ),
                     ),
                   ),
@@ -162,6 +189,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
                       decoration: const InputDecoration(
                         labelText: 'Bio',
                         border: OutlineInputBorder(),
+                        filled: true,
+                        fillColor: lightGray,
                       ),
                     ),
                   ),
@@ -187,6 +216,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
                       decoration: const InputDecoration(
                         labelText: 'Sex',
                         border: OutlineInputBorder(),
+                        filled: true,
+                        fillColor: lightGray,
                       ),
                     ),
                   ),
@@ -208,6 +239,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
                       decoration: const InputDecoration(
                         labelText: 'Preference',
                         border: OutlineInputBorder(),
+                        filled: true,
+                        fillColor: lightGray,
                       ),
                     ),
                   ),
@@ -219,9 +252,15 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   Expanded(
                     child: ElevatedButton(
                       onPressed: _pickImage,
-                      child: Text(_profilePhoto == null
-                          ? 'Add Profile Photo'
-                          : 'Change Profile Photo'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: deepPurple,
+                        foregroundColor: Colors.white,
+                      ),
+                      child: Text(
+                        _profilePhoto == null
+                            ? 'Add Profile Photo'
+                            : 'Change Profile Photo',
+                      ),
                     ),
                   ),
                   const SizedBox(width: 10),
@@ -244,6 +283,11 @@ class _SignUpScreenState extends State<SignUpScreen> {
                 onPressed: () {
                   Navigator.pop(context);
                 },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: deepPurple,
+                  foregroundColor: Colors.white,
+                  minimumSize: const Size(double.infinity, 50),
+                ),
                 child: const Text('Submit'),
               ),
             ],
