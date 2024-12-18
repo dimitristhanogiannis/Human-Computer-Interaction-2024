@@ -16,7 +16,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   String age = "25";
   String _sex = 'Male';
   String _preference = 'Female';
-  String _location = 'Location not selected';
+  String _location = 'Location: Enabled';
   File? _profilePicture;
 
   // Function to get location
@@ -72,11 +72,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
       print("Latitude: ${position.latitude}, Longitude: ${position.longitude}");
       setState(() {
-        _location = 'Lat: ${position.latitude}, Lon: ${position.longitude}';
+        _location = 'Location: Enabled';
       });
 
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text('Location retrieved: $_location'),
+        content: Text('Location retrieved: Lat: ${position.latitude}, Lon: ${position.longitude}'),
       ));
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
@@ -117,60 +117,67 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    const Color deepPurple = Color(0xFF7B1FA2);
+
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Settings'),
+        title: const Text(
+          'Settings',
+          style: TextStyle(fontSize: 30, color: deepPurple, fontWeight: FontWeight.bold),
+        ),
         centerTitle: true,
         leading: IconButton(
           icon: const Icon(Icons.settings),
           onPressed: () {
             Navigator.pop(context);
           },
+          color: deepPurple,
         ),
+        backgroundColor: Colors.transparent,
+        elevation: 0,
       ),
       body: Column(
         children: [
-          const Padding(
-            padding: EdgeInsets.symmetric(vertical: 20),
-            child: Text(
-              'Settings',
-              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+          const SizedBox(height: 40),
+          // Profile Picture Display
+          Center(
+            child: GestureDetector(
+              onTap: _pickImage,
+              child: CircleAvatar(
+                radius: 50,
+                backgroundImage: _profilePicture != null
+                    ? FileImage(_profilePicture!)
+                    : const AssetImage('assets/default_avatar.png') as ImageProvider,
+                child: _profilePicture == null
+                    ? const Icon(Icons.camera_alt, size: 50, color: Colors.white)
+                    : null,
+              ),
             ),
           ),
+          const SizedBox(height: 20),
           Expanded(
             child: ListView(
               padding: const EdgeInsets.symmetric(horizontal: 16),
               children: [
-                // Profile Picture Display
-                Center(
-                  child: GestureDetector(
-                    onTap: _pickImage,
-                    child: CircleAvatar(
-                      radius: 50,
-                      backgroundImage: _profilePicture != null
-                          ? FileImage(_profilePicture!)
-                          : const AssetImage('assets/default_avatar.png') as ImageProvider,
-                      child: _profilePicture == null
-                          ? const Icon(Icons.camera_alt, size: 50, color: Colors.white)
-                          : null,
-                    ),
+                // Combine Use Location Switch with Location Information
+                _SettingsOption(
+                  title: _location,
+                  trailing: Switch(
+                    value: useLocation,
+                    onChanged: (bool value) {
+                      setState(() {
+                        useLocation = value;
+                        if (useLocation) {
+                          _location = 'Location: Enabled';
+                          _getLocation();
+                        } else {
+                          _location = 'Location: Disabled';
+                          print('Location tracking disabled');
+                        }
+                      });
+                    },
+                    activeColor: deepPurple,
                   ),
-                ),
-                const SizedBox(height: 20),
-                SwitchListTile(
-                  title: const Text('Use my location'),
-                  value: useLocation,
-                  onChanged: (bool value) {
-                    setState(() {
-                      useLocation = value;
-                      if (useLocation) {
-                        _getLocation();
-                      } else {
-                        _location = 'Location not selected';
-                        print('Location tracking disabled');
-                      }
-                    });
-                  },
                 ),
                 _SettingsOption(
                   title: 'Sex: $_sex',
@@ -222,6 +229,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   },
                 ),
                 const SizedBox(height: 20),
+                // Logout Button
                 Center(
                   child: ElevatedButton(
                     onPressed: () {
@@ -229,10 +237,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       Navigator.pushReplacementNamed(context, '/login');
                     },
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.red,
-                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      backgroundColor: deepPurple,
+                      padding: const EdgeInsets.symmetric(horizontal: 50),
                     ),
-                    child: const Text('Logout'),
+                    child: const Text('Logout', style: TextStyle(color: Colors.white)),
                   ),
                 ),
               ],
@@ -297,9 +305,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
 class _SettingsOption extends StatelessWidget {
   final String title;
-  final VoidCallback onTap;
+  final VoidCallback? onTap;
+  final Widget? trailing;
 
-  const _SettingsOption({required this.title, required this.onTap});
+  const _SettingsOption({required this.title, this.onTap, this.trailing});
 
   @override
   Widget build(BuildContext context) {
@@ -307,7 +316,7 @@ class _SettingsOption extends StatelessWidget {
       margin: const EdgeInsets.symmetric(vertical: 8),
       child: ListTile(
         title: Text(title),
-        trailing: const Icon(Icons.arrow_forward_ios),
+        trailing: trailing ?? const Icon(Icons.arrow_forward_ios),
         onTap: onTap,
       ),
     );
