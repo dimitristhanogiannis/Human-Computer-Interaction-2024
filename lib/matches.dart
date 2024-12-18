@@ -6,31 +6,33 @@ import 'package:camconnect/video_call_page.dart';
 
 class MatchesScreen extends StatelessWidget {
   final List<Map<String, String>> dummyMatches = [
-    {"name": "Alex", "image": "assets/user1.jpg"},
-    {"name": "Jordan", "image": "assets/user2.jpg"},
-    {"name": "Taylor", "image": "assets/user3.jpg"},
-    {"name": "Morgan", "image": "assets/user4.jpg"},
-    {"name": "Chris", "image": "assets/user5.jpg"},
-    {"name": "Sam", "image": "assets/user6.jpg"},
+    {"name": "Alex", "image": "https://via.placeholder.com/150"},
+    {"name": "Jordan", "image": "https://via.placeholder.com/150"},
+    {"name": "Taylor", "image": "https://via.placeholder.com/150"},
+    {"name": "Morgan", "image": "https://via.placeholder.com/150"},
+    {"name": "Chris", "image": "https://via.placeholder.com/150"},
+    {"name": "Sam", "image": "https://via.placeholder.com/150"},
   ];
 
   @override
   Widget build(BuildContext context) {
+    const Color deepPurple = Color(0xFF7B1FA2);
+
     return Scaffold(
-      backgroundColor: Colors.white, // Set background color to white
+      backgroundColor: Colors.white,
       appBar: AppBar(
         title: const Text(
           'Matches',
           style: TextStyle(
-            color: Colors.deepPurple, // Deep purple title
-            fontSize: 30, // Increased font size
+            color: deepPurple,
+            fontSize: 30,
           ),
         ),
         centerTitle: true,
-        backgroundColor: Colors.white, // White background for the app bar
+        backgroundColor: Colors.white,
         leading: IconButton(
           icon: const Icon(Icons.settings),
-          color: Colors.deepPurple, // Deep purple color for settings button
+          color: deepPurple,
           onPressed: () {
             Navigator.push(
               context,
@@ -43,10 +45,10 @@ class MatchesScreen extends StatelessWidget {
         padding: const EdgeInsets.all(8.0),
         child: GridView.builder(
           gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 2, // 2 matches per row
-            crossAxisSpacing: 10.0, // Increased spacing between items
-            mainAxisSpacing: 10.0, // Increased spacing between items
-            childAspectRatio: 1.5, // Aspect ratio for the cards
+            crossAxisCount: 2,
+            crossAxisSpacing: 10.0,
+            mainAxisSpacing: 10.0,
+            childAspectRatio: 0.8, // Adjusted aspect ratio to make the boxes taller
           ),
           itemCount: dummyMatches.length,
           itemBuilder: (context, index) {
@@ -57,11 +59,10 @@ class MatchesScreen extends StatelessWidget {
           },
         ),
       ),
-      // Custom Bottom Navigation Bar
       bottomNavigationBar: BottomNavigationBar(
-        selectedItemColor: Colors.deepPurple, // Deep purple for selected item
-        unselectedItemColor: Colors.deepPurple, // Deep purple for unselected items
-        currentIndex: 1, // Camera icon (video call) is selected
+        selectedItemColor: deepPurple,
+        unselectedItemColor: deepPurple,
+        currentIndex: 1,
         onTap: (index) {
           if (index == 0) {
             Navigator.pushReplacement(
@@ -79,36 +80,36 @@ class MatchesScreen extends StatelessWidget {
           BottomNavigationBarItem(
             icon: const Icon(
               Icons.favorite,
-              color: Colors.deepPurple, // Deep purple for heart icon
+              color: deepPurple,
               size: 24,
             ),
-            label: "", // No label for this item
+            label: "",
           ),
           BottomNavigationBarItem(
             icon: ClipRRect(
-              borderRadius: BorderRadius.circular(50), // Capsule shape
+              borderRadius: BorderRadius.circular(50),
               child: Container(
                 height: 40,
                 width: 80,
-                color: Colors.deepPurple, // Deep purple background for camera icon
+                color: deepPurple,
                 child: const Center(
                   child: Icon(
                     Icons.video_call,
-                    color: Colors.white, // White icon color for selected camera
+                    color: Colors.white,
                     size: 24,
                   ),
                 ),
               ),
             ),
-            label: "", // No label for this item
+            label: "",
           ),
           BottomNavigationBarItem(
             icon: const Icon(
               Icons.groups,
-              color: Colors.deepPurple, // Deep purple for leaderboard icon
+              color: deepPurple,
               size: 24,
             ),
-            label: "", // No label for this item
+            label: "",
           ),
         ],
       ),
@@ -127,6 +128,8 @@ class MatchCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    const Color deepPurple = Color(0xFF7B1FA2);
+
     return Card(
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(10),
@@ -134,40 +137,34 @@ class MatchCard extends StatelessWidget {
       elevation: 4,
       child: Column(
         children: [
-          // Name field above the image
           Padding(
             padding: const EdgeInsets.all(4.0),
             child: Container(
               width: double.infinity,
-              color: Colors.deepPurple, // Deep purple background for the name field
+              color: deepPurple,
               padding: const EdgeInsets.symmetric(vertical: 8.0),
               child: Text(
                 name,
                 style: const TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
-                  color: Colors.white, // White text color for name
+                  color: Colors.white,
                 ),
-                textAlign: TextAlign.center, // Move textAlign here
+                textAlign: TextAlign.center,
               ),
             ),
           ),
-
-          // Photo with adjusted height
           Expanded(
             child: Container(
-              height: 300, // Increase the height to 300 or any desired value
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(10),
                 image: DecorationImage(
-                  image: AssetImage(image),
+                  image: NetworkImage(image), // Updated to use network images
                   fit: BoxFit.cover,
                 ),
               ),
             ),
           ),
-
-          // Video Call and Delete Buttons
           Padding(
             padding: const EdgeInsets.symmetric(vertical: 4.0),
             child: Row(
@@ -185,23 +182,22 @@ class MatchCard extends StatelessWidget {
                     );
                   },
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.deepPurple, // Deep purple field
+                    backgroundColor: deepPurple,
                     padding: const EdgeInsets.symmetric(horizontal: 10),
                   ),
-                  child: const Icon(Icons.videocam, color: Colors.white), // White icon
+                  child: const Icon(Icons.videocam, color: Colors.white),
                 ),
                 ElevatedButton(
                   onPressed: () {
-                    // Handle delete
                     print('Deleted $name');
                   },
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.red, // Red background for delete button
+                    backgroundColor: Colors.red,
                     padding: const EdgeInsets.symmetric(horizontal: 10),
                   ),
                   child: const Text(
-                    "DELETE", // Text in all caps
-                    style: TextStyle(color: Colors.white), // White text color
+                    "DELETE",
+                    style: TextStyle(color: Colors.white),
                   ),
                 ),
               ],

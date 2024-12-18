@@ -54,7 +54,7 @@ class _SwipePageState extends State<SwipePage> {
 
   @override
   Widget build(BuildContext context) {
-    const Color deepPurple = Color(0xFF6A1B9A);
+    const Color deepPurple = Color(0xFF7B1FA2);
     const Color white = Colors.white;
 
     return Scaffold(
