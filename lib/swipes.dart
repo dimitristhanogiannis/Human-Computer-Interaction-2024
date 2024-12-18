@@ -24,7 +24,6 @@ class _SwipePageState extends State<SwipePage> {
   @override
   void initState() {
     super.initState();
-
     for (var user in _dummyUsers) {
       _swipeItems.add(SwipeItem(
         content: user,
@@ -34,14 +33,8 @@ class _SwipePageState extends State<SwipePage> {
         nopeAction: () {
           print("Disliked ${user['name']}");
         },
-        onSlideUpdate: (region) async {
-          print("Region $region");
-          await Future.delayed(Duration(seconds: 1));
-          return;
-        },
       ));
     }
-
     _matchEngine = MatchEngine(swipeItems: _swipeItems);
   }
 
@@ -61,21 +54,33 @@ class _SwipePageState extends State<SwipePage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-           title: const Text("Swipe Page"),
-           centerTitle: true,
-           leading: IconButton(
-           icon: const Icon(Icons.settings),
-           onPressed: () {
-           Navigator.push(
-           context,
-           MaterialPageRoute(builder: (context) => SettingsScreen()),
-      );
-    },
-  ),
-),
+    const Color deepPurple = Color(0xFF6A1B9A);
+    const Color white = Colors.white;
 
+    return Scaffold(
+      backgroundColor: white, // Entire app background is white
+      appBar: AppBar(
+        backgroundColor: white,
+        elevation: 0,
+        centerTitle: true,
+        title: const Text(
+          "Meet new people",
+          style: TextStyle(
+            color: deepPurple,
+            fontSize: 30, // Bigger size for the logo
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        leading: IconButton(
+          icon: const Icon(Icons.settings, color: deepPurple),
+          onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => SettingsScreen()),
+            );
+          },
+        ),
+      ),
       body: Column(
         children: [
           Expanded(
@@ -83,21 +88,66 @@ class _SwipePageState extends State<SwipePage> {
               matchEngine: _matchEngine,
               itemBuilder: (BuildContext context, int index) {
                 final user = _swipeItems[index].content;
-                return Card(
-                  elevation: 8.0,
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16.0)),
+                return Container(
+                  margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(16.0),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black12,
+                        blurRadius: 8,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
                   child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
+                    mainAxisSize: MainAxisSize.max,
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
-                      Image.asset(user["image"],
-                          height: 200, fit: BoxFit.cover),
-                      const SizedBox(height: 16),
-                      Text("${user['name']}, ${user['age']}",
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(12),
+                        child: Image.asset(
+                          user["image"],
+                          height: 250,
+                          width: double.infinity,
+                          fit: BoxFit.cover,
+                        ),
+                      ),
+                      // Deep purple box for name and age
+                      Container(
+                        padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+                        decoration: BoxDecoration(
+                          color: deepPurple,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Text(
+                          "${user['name']}, ${user['age']}",
                           style: const TextStyle(
-                              fontSize: 24, fontWeight: FontWeight.bold)),
-                      const SizedBox(height: 8),
-                      Text(user['bio'], textAlign: TextAlign.center),
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                            color: white,
+                          ),
+                        ),
+                      ),
+                      // Deep purple box for bio
+                      Container(
+                        margin: const EdgeInsets.only(top: 10),
+                        padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+                        decoration: BoxDecoration(
+                          color: deepPurple,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Text(
+                          user['bio'],
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(
+                            fontSize: 16,
+                            color: white,
+                          ),
+                        ),
+                      ),
                     ],
                   ),
                 );
@@ -105,38 +155,72 @@ class _SwipePageState extends State<SwipePage> {
               onStackFinished: () {
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(
-                      content: Text("You've reached the end of the list")),
+                    content: Text("You've reached the end of the list!"),
+                  ),
                 );
-              },
-              itemChanged: (SwipeItem item, int index) {
-                print("Item at index: $index changed");
               },
             ),
           ),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [
-              IconButton(
-                icon: const Icon(Icons.clear, color: Colors.red, size: 36),
-                onPressed: () {
-                  _matchEngine.currentItem?.nope();
-                },
-              ),
-              IconButton(
-                icon: const Icon(Icons.check, color: Colors.green, size: 36),
-                onPressed: () {
-                  _matchEngine.currentItem?.like();
-                },
-              ),
-            ],
+          // Larger Yes/No Buttons
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 16),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    shape: const CircleBorder(),
+                    padding: const EdgeInsets.all(28),
+                    backgroundColor: deepPurple,
+                  ),
+                  onPressed: () => _matchEngine.currentItem?.nope(),
+                  child: const Icon(Icons.clear, color: white, size: 48),
+                ),
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    shape: const CircleBorder(),
+                    padding: const EdgeInsets.all(28),
+                    backgroundColor: deepPurple,
+                  ),
+                  onPressed: () => _matchEngine.currentItem?.like(),
+                  child: const Icon(Icons.check, color: white, size: 48),
+                ),
+              ],
+            ),
           ),
         ],
       ),
+      // Bottom Navigation Bar
       bottomNavigationBar: BottomNavigationBar(
-        items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.swipe), label: "Swipe"),
-          BottomNavigationBarItem(icon: Icon(Icons.video_call), label: "Matches"),
-          BottomNavigationBarItem(icon: Icon(Icons.leaderboard), label: "Leaderboard"),
+        selectedItemColor: deepPurple,
+        unselectedItemColor: Colors.grey,
+        items: [
+          BottomNavigationBarItem(
+            icon: ClipRRect(
+              borderRadius: BorderRadius.circular(50), // Capsule shape
+              child: Container(
+                height: 40,
+                width: 80,
+                color: deepPurple,
+                child: const Center(
+                  child: Icon(
+                    Icons.favorite,
+                    color: white,
+                    size: 24,
+                  ),
+                ),
+              ),
+            ),
+            label: "",
+          ),
+          const BottomNavigationBarItem(
+            icon: Icon(Icons.video_call),
+            label: "",
+          ),
+          const BottomNavigationBarItem(
+            icon: Icon(Icons.groups),
+            label: "",
+          ),
         ],
         currentIndex: 0,
         onTap: _navigateToPage,
@@ -144,7 +228,3 @@ class _SwipePageState extends State<SwipePage> {
     );
   }
 }
-
-
-
-
