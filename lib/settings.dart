@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
-
+import 'package:image_picker/image_picker.dart';
+import 'dart:io';
 
 class SettingsScreen extends StatefulWidget {
   @override
@@ -16,25 +17,102 @@ class _SettingsScreenState extends State<SettingsScreen> {
   String _sex = 'Male';
   String _preference = 'Female';
   String _location = 'Location not selected';
+  File? _profilePicture;
 
   // Function to get location
   Future<void> _getLocation() async {
+    print("Requesting location...");
     bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+
     if (!serviceEnabled) {
-      print("Location services are disabled.");
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+        content: Text('Please enable location services'),
+      ));
       return;
     }
 
     LocationPermission permission = await Geolocator.checkPermission();
+
+    if (permission == LocationPermission.denied) {
+      permission = await Geolocator.requestPermission();
+      if (permission == LocationPermission.denied) {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+          content: Text('Location permissions are denied'),
+        ));
+        return;
+      }
+    }
+
     if (permission == LocationPermission.deniedForever) {
+      showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('Location Permissions Permanently Denied'),
+          content: const Text(
+            'Please enable location permissions for this app in your device settings.',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Geolocator.openAppSettings();
+                Navigator.pop(context);
+              },
+              child: const Text('Open Settings'),
+            ),
+          ],
+        ),
+      );
       return;
     }
 
-    Position position = await Geolocator.getCurrentPosition(
-        desiredAccuracy: LocationAccuracy.high);
-    setState(() {
-      _location = 'Lat: ${position.latitude}, Lon: ${position.longitude}';
-    });
+    try {
+      Position position = await Geolocator.getCurrentPosition(
+        desiredAccuracy: LocationAccuracy.high,
+      );
+
+      print("Latitude: ${position.latitude}, Longitude: ${position.longitude}");
+      setState(() {
+        _location = 'Lat: ${position.latitude}, Lon: ${position.longitude}';
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text('Location retrieved: $_location'),
+      ));
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text('Error retrieving location: $e'),
+      ));
+      print("Error retrieving location: $e");
+    }
+  }
+
+  // Function to pick an image using image picker
+  Future<void> _pickImage() async {
+    try {
+      final pickedImage = await ImagePicker().pickImage(
+        source: ImageSource.gallery,
+        maxHeight: 500,
+        maxWidth: 500,
+        imageQuality: 80,
+      );
+
+      if (pickedImage != null) {
+        setState(() {
+          _profilePicture = File(pickedImage.path);
+        });
+
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+          content: Text('Profile picture updated successfully!'),
+        ));
+      } else {
+        print('No image selected.');
+      }
+    } catch (e) {
+      print("Error picking image: $e");
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text('Error picking image: $e'),
+      ));
+    }
   }
 
   @override
@@ -63,13 +141,34 @@ class _SettingsScreenState extends State<SettingsScreen> {
             child: ListView(
               padding: const EdgeInsets.symmetric(horizontal: 16),
               children: [
+                // Profile Picture Display
+                Center(
+                  child: GestureDetector(
+                    onTap: _pickImage,
+                    child: CircleAvatar(
+                      radius: 50,
+                      backgroundImage: _profilePicture != null
+                          ? FileImage(_profilePicture!)
+                          : const AssetImage('assets/default_avatar.png') as ImageProvider,
+                      child: _profilePicture == null
+                          ? const Icon(Icons.camera_alt, size: 50, color: Colors.white)
+                          : null,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 20),
                 SwitchListTile(
                   title: const Text('Use my location'),
                   value: useLocation,
                   onChanged: (bool value) {
                     setState(() {
                       useLocation = value;
-                      if (useLocation) _getLocation();
+                      if (useLocation) {
+                        _getLocation();
+                      } else {
+                        _location = 'Location not selected';
+                        print('Location tracking disabled');
+                      }
                     });
                   },
                 ),
@@ -87,12 +186,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     await _showDropdown(context, 'Preference', ['Male', 'Female', 'Both'], (value) {
                       setState(() => _preference = value);
                     });
-                  },
-                ),
-                _SettingsOption(
-                  title: 'Change Profile Picture',
-                  onTap: () {
-                    print('Change Profile Picture');
                   },
                 ),
                 _SettingsOption(
@@ -128,12 +221,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     }
                   },
                 ),
-                _SettingsOption(
-                  title: 'Change Password',
-                  onTap: () {
-                    print('Change Password');
-                  },
-                ),
                 const SizedBox(height: 20),
                 Center(
                   child: ElevatedButton(
@@ -150,32 +237,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 ),
               ],
             ),
-          ),
-        ],
-      ),
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: 0,
-        onTap: (index) {
-          if (index == 0) {
-            Navigator.pushReplacementNamed(context, '/swipes');
-          } else if (index == 1) {
-            Navigator.pushReplacementNamed(context, '/matches');
-          } else if (index == 2) {
-            Navigator.pushReplacementNamed(context, '/leaderboard');
-          }
-        },
-        items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.swipe),
-            label: 'Swipe',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.videocam),
-            label: 'Matches',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.leaderboard),
-            label: 'Leaderboard',
           ),
         ],
       ),

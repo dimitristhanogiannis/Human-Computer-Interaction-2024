@@ -9,7 +9,7 @@ const appId = "4d3c0d2539e849ffa231cf29a7abe5c4";
 
 // Replace with your temporary token generated in the Agora Console
 const token =
-    "007eJxTYIi2NGdwbMs7njXje/A9n2bNXa/mzEvv2nFEjv+tf4t4V5MCg0mKcbJBipGpsWWqhYllWlqikbFhcpqRZaJ5YlKqabLJvyMJ6Q2BjAwhbzlYGRkgEMRnZ0jOSMzLS81hYAAApsAhBg==";
+    "007eJxTYEhxeXX6qJ91U4JZxb1ms5dx62Nk/ogpMv1q73DTTr6jm6vAYJJinGyQYmRqbJlqYWKZlpZoZGyYnGZkmWiemJRqmmySsiMpvSGQkcFgSQkjIwMEgvjsDMkZiXl5qTkMDAB71x/h";
 
 class VideoCallPage extends StatefulWidget {
   final String channelName; // Add channelName parameter

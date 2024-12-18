@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:geolocator/geolocator.dart';
+import 'dart:async';
 
 class SignUpScreen extends StatefulWidget {
   const SignUpScreen({super.key});
@@ -37,7 +38,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
       });
     }
   }
-
+/*
   Future<void> _getLocation() async {
     bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
     if (!serviceEnabled) {
@@ -55,7 +56,71 @@ class _SignUpScreenState extends State<SignUpScreen> {
     setState(() {
       _location = 'Lat: ${position.latitude}, Lon: ${position.longitude}';
     });
+  }*/
+
+  StreamSubscription<Position>? _positionStreamSubscription; 
+
+  Future<void> _getLocation() async {
+  bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+  if (!serviceEnabled) {
+    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+      content: Text('Please enable location services'),
+    ));
+    return;
   }
+
+  LocationPermission permission = await Geolocator.checkPermission();
+
+  // Request permission if it is denied
+  if (permission == LocationPermission.denied) {
+    permission = await Geolocator.requestPermission();
+    if (permission == LocationPermission.denied) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+        content: Text('Location permissions are denied'),
+      ));
+      return;
+    }
+  }
+
+  // Handle permanently denied permissions
+  if (permission == LocationPermission.deniedForever) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Location Permissions Permanently Denied'),
+        content: const Text(
+          'Please enable location permissions for this app in your device settings.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Geolocator.openAppSettings();
+              Navigator.pop(context);
+            },
+            child: const Text('Open Settings'),
+          ),
+        ],
+      ),
+    );
+    return;
+  }
+
+  // If permissions are granted, fetch the location
+  try {
+    Position position = await Geolocator.getCurrentPosition(
+      desiredAccuracy: LocationAccuracy.high,
+    );
+    setState(() {
+      _location = 'Lat: ${position.latitude}, Lon: ${position.longitude}';
+    });
+     print("Latitude: ${position.latitude}, Longitude: ${position.longitude}");
+  } catch (e) {
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+      content: Text('Error retrieving location: $e'),
+    ));
+  }
+}
+
 
   @override
   Widget build(BuildContext context) {
@@ -269,11 +334,14 @@ class _SignUpScreenState extends State<SignUpScreen> {
                       title: const Text('Use my location'),
                       value: useLocation,
                       onChanged: (bool value) {
-                        setState(() {
-                          useLocation = value;
-                          if (useLocation) _getLocation();
-                        });
-                      },
+                         setState(() {
+                         useLocation = value;
+                         if (useLocation) {
+                         print('Fetching location...');
+                         _getLocation();
+                             }
+                           });
+                        },
                     ),
                   ),
                 ],
@@ -290,6 +358,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                 ),
                 child: const Text('Submit'),
               ),
+              
             ],
           ),
         ),
