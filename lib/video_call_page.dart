@@ -1,4 +1,3 @@
-// video_call_page.dart
 import 'package:flutter/material.dart';
 import 'dart:async';
 import 'package:agora_rtc_engine/agora_rtc_engine.dart';
@@ -95,77 +94,103 @@ class _VideoCallPageState extends State<VideoCallPage> {
 
   @override
   Widget build(BuildContext context) {
+    const Color deepPurple = Color(0xFF7B1FA2);
+
     return MaterialApp(
+      debugShowCheckedModeBanner: false, // Disable the debug banner
       home: Scaffold(
         appBar: AppBar(
-          title: const Text('Video Call'),
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          centerTitle: true,
+          title: const Text(
+            'Video Call',
+            style: TextStyle(
+              fontSize: 30,
+              color: deepPurple,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
         ),
-        body: Stack(
+        body: Column(
           children: [
-            Center(
+            Expanded(
+              child: _localUserJoined
+                  ? (_isCameraOff
+                      ? Container(
+                          color: Colors.grey,
+                          child: const Center(
+                            child: Icon(Icons.videocam_off, size: 40),
+                          ),
+                        )
+                      : AgoraVideoView(
+                          controller: VideoViewController(
+                            rtcEngine: _engine,
+                            canvas: const VideoCanvas(uid: 0),
+                          ),
+                        ))
+                  : const Center(child: CircularProgressIndicator()),
+            ),
+            Expanded(
               child: _remoteVideo(),
             ),
-            Align(
-              alignment: Alignment.topLeft,
-              child: SizedBox(
-                width: 100,
-                height: 150,
-                child: Center(
-                  child: _localUserJoined
-                      ? (_isCameraOff
-                          ? Container(
-                              color: Colors.grey,
-                              child: const Center(
-                                child: Icon(Icons.videocam_off, size: 40),
-                              ),
-                            )
-                          : AgoraVideoView(
-                              controller: VideoViewController(
-                                rtcEngine: _engine,
-                                canvas: const VideoCanvas(uid: 0),
-                              ),
-                            ))
-                      : const CircularProgressIndicator(),
-                ),
-              ),
-            ),
-            Align(
-              // Align buttons at the bottom
-              alignment: Alignment.bottomCenter,
-              child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 20),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceAround,
-                  children: [
-                    ElevatedButton(
-                      onPressed: () {
-                        setState(() {
-                          _isMuted = !_isMuted;
-                        });
-                        _engine.muteLocalAudioStream(_isMuted);
-                      },
-                      child: Icon(_isMuted ? Icons.mic_off : Icons.mic),
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 20),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                children: [
+                  // Mic Button
+                  ElevatedButton(
+                    onPressed: () {
+                      setState(() {
+                        _isMuted = !_isMuted;
+                      });
+                      _engine.muteLocalAudioStream(_isMuted);
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: deepPurple,
+                      shape: const CircleBorder(),
+                      padding: const EdgeInsets.all(15),
                     ),
-                    ElevatedButton(
-                      onPressed: () {
-                        setState(() {
-                          _isCameraOff = !_isCameraOff;
-                        });
-                        _engine.enableLocalVideo(!_isCameraOff);
-                      },
-                      child: Icon(_isCameraOff
-                          ? Icons.videocam_off
-                          : Icons.videocam),
+                    child: Icon(
+                      _isMuted ? Icons.mic_off : Icons.mic,
+                      color: Colors.white,
                     ),
-                    ElevatedButton(
-                      onPressed: () {
-                        Navigator.pop(context); // End call (go back)
-                      },
-                      child: const Icon(Icons.call_end),
-                      style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+                  ),
+                  // Camera Button
+                  ElevatedButton(
+                    onPressed: () {
+                      setState(() {
+                        _isCameraOff = !_isCameraOff;
+                      });
+                      _engine.enableLocalVideo(!_isCameraOff);
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: deepPurple,
+                      shape: const CircleBorder(),
+                      padding: const EdgeInsets.all(15),
                     ),
-                  ],
-                ),
+                    child: Icon(
+                      _isCameraOff ? Icons.videocam_off : Icons.videocam,
+                      color: Colors.white,
+                    ),
+                  ),
+                  // End Call Button
+                  ElevatedButton(
+                    onPressed: () {
+                      Navigator.pop(context); // End call (go back)
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.red,
+                      shape: const CircleBorder(),
+                      padding: const EdgeInsets.all(15),
+                    ),
+                    child: const Icon(
+                      Icons.call_end,
+                      color: Colors.white,
+                    ),
+                  ),
+                ],
               ),
             ),
           ],
@@ -185,9 +210,11 @@ class _VideoCallPageState extends State<VideoCallPage> {
         ),
       );
     } else {
-      return const Text(
-        'Please wait for user to join',
-        textAlign: TextAlign.center,
+      return const Center(
+        child: Text(
+          'Please wait for user to join',
+          textAlign: TextAlign.center,
+        ),
       );
     }
   }
