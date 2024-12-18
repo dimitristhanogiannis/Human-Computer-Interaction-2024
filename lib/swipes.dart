@@ -192,7 +192,7 @@ class _SwipePageState extends State<SwipePage> {
       ),
       // Bottom Navigation Bar
       bottomNavigationBar: BottomNavigationBar(
-        selectedItemColor: deepPurple,
+        selectedItemColor: deepPurple, // Deep purple for selected items
         unselectedItemColor: Colors.grey,
         items: [
           BottomNavigationBarItem(
@@ -213,12 +213,20 @@ class _SwipePageState extends State<SwipePage> {
             ),
             label: "",
           ),
-          const BottomNavigationBarItem(
-            icon: Icon(Icons.video_call),
+          BottomNavigationBarItem(
+            icon: Icon(
+              Icons.video_call,
+              color: deepPurple, // Camera icon in deep purple
+              size: 24,
+            ),
             label: "",
           ),
-          const BottomNavigationBarItem(
-            icon: Icon(Icons.groups),
+          BottomNavigationBarItem(
+            icon: Icon(
+              Icons.groups,
+              color: deepPurple, // Leaderboard icon in deep purple
+              size: 24,
+            ),
             label: "",
           ),
         ],

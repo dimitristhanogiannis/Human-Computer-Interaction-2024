@@ -17,11 +17,20 @@ class MatchesScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white, // Set background color to white
       appBar: AppBar(
-        title: const Text('Matches'),
+        title: const Text(
+          'Matches',
+          style: TextStyle(
+            color: Colors.deepPurple, // Deep purple title
+            fontSize: 30, // Increased font size
+          ),
+        ),
         centerTitle: true,
+        backgroundColor: Colors.white, // White background for the app bar
         leading: IconButton(
           icon: const Icon(Icons.settings),
+          color: Colors.deepPurple, // Deep purple color for settings button
           onPressed: () {
             Navigator.push(
               context,
@@ -30,57 +39,76 @@ class MatchesScreen extends StatelessWidget {
           },
         ),
       ),
-      body: Column(
-        children: [
-          Expanded(
-            child: Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: GridView.builder(
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 2, // 2 matches per row
-                  crossAxisSpacing: 8.0,
-                  mainAxisSpacing: 8.0,
-                  childAspectRatio: 1.2, // Smaller cards
+      body: Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: GridView.builder(
+          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 2, // 2 matches per row
+            crossAxisSpacing: 10.0, // Increased spacing between items
+            mainAxisSpacing: 10.0, // Increased spacing between items
+            childAspectRatio: 1.5, // Aspect ratio for the cards
+          ),
+          itemCount: dummyMatches.length,
+          itemBuilder: (context, index) {
+            return MatchCard(
+              name: dummyMatches[index]["name"]!,
+              image: dummyMatches[index]["image"]!,
+            );
+          },
+        ),
+      ),
+      // Custom Bottom Navigation Bar
+      bottomNavigationBar: BottomNavigationBar(
+        selectedItemColor: Colors.deepPurple, // Deep purple for selected item
+        unselectedItemColor: Colors.deepPurple, // Deep purple for unselected items
+        currentIndex: 1, // Camera icon (video call) is selected
+        onTap: (index) {
+          if (index == 0) {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (context) => SwipePage()),
+            );
+          } else if (index == 2) {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (context) => LeaderboardScreen()),
+            );
+          }
+        },
+        items: [
+          BottomNavigationBarItem(
+            icon: const Icon(
+              Icons.favorite,
+              color: Colors.deepPurple, // Deep purple for heart icon
+              size: 24,
+            ),
+            label: "", // No label for this item
+          ),
+          BottomNavigationBarItem(
+            icon: ClipRRect(
+              borderRadius: BorderRadius.circular(50), // Capsule shape
+              child: Container(
+                height: 40,
+                width: 80,
+                color: Colors.deepPurple, // Deep purple background for camera icon
+                child: const Center(
+                  child: Icon(
+                    Icons.video_call,
+                    color: Colors.white, // White icon color for selected camera
+                    size: 24,
+                  ),
                 ),
-                itemCount: dummyMatches.length,
-                itemBuilder: (context, index) {
-                  return MatchCard(
-                    name: dummyMatches[index]["name"]!,
-                    image: dummyMatches[index]["image"]!,
-                  );
-                },
               ),
             ),
+            label: "", // No label for this item
           ),
-          BottomNavigationBar(
-            currentIndex: 1, // Matches tab selected
-            onTap: (index) {
-              if (index == 0) {
-                Navigator.pushReplacement(
-                  context,
-                  MaterialPageRoute(builder: (context) => SwipePage()),
-                );
-              } else if (index == 2) {
-                Navigator.pushReplacement(
-                  context,
-                  MaterialPageRoute(builder: (context) => LeaderboardScreen()),
-                );
-              }
-            },
-            items: const [
-              BottomNavigationBarItem(
-                icon: Icon(Icons.swipe),
-                label: 'Swipe',
-              ),
-              BottomNavigationBarItem(
-                icon: Icon(Icons.videocam),
-                label: 'Matches',
-              ),
-              BottomNavigationBarItem(
-                icon: Icon(Icons.leaderboard),
-                label: 'Leaderboard',
-              ),
-            ],
+          BottomNavigationBarItem(
+            icon: const Icon(
+              Icons.groups,
+              color: Colors.deepPurple, // Deep purple for leaderboard icon
+              size: 24,
+            ),
+            label: "", // No label for this item
           ),
         ],
       ),
@@ -105,21 +133,30 @@ class MatchCard extends StatelessWidget {
       ),
       elevation: 4,
       child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          // Name
+          // Name field above the image
           Padding(
             padding: const EdgeInsets.all(4.0),
-            child: Text(
-              name,
-              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-              textAlign: TextAlign.center,
+            child: Container(
+              width: double.infinity,
+              color: Colors.deepPurple, // Deep purple background for the name field
+              padding: const EdgeInsets.symmetric(vertical: 8.0),
+              child: Text(
+                name,
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white, // White text color for name
+                ),
+                textAlign: TextAlign.center, // Move textAlign here
+              ),
             ),
           ),
 
-          // Photo
+          // Photo with adjusted height
           Expanded(
             child: Container(
+              height: 300, // Increase the height to 300 or any desired value
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(10),
                 image: DecorationImage(
@@ -130,7 +167,7 @@ class MatchCard extends StatelessWidget {
             ),
           ),
 
-          // Video Call and Unmatch Buttons
+          // Video Call and Delete Buttons
           Padding(
             padding: const EdgeInsets.symmetric(vertical: 4.0),
             child: Row(
@@ -138,31 +175,34 @@ class MatchCard extends StatelessWidget {
               children: [
                 ElevatedButton(
                   onPressed: () {
-                  Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                  builder: (context) => VideoCallPage(
-                  channelName: "channel",
-                  ),
-                  ),
-                  );
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => VideoCallPage(
+                          channelName: "channel",
+                        ),
+                      ),
+                    );
                   },
                   style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.green,
-                  padding: const EdgeInsets.symmetric(horizontal: 10),
+                    backgroundColor: Colors.deepPurple, // Deep purple field
+                    padding: const EdgeInsets.symmetric(horizontal: 10),
                   ),
-                 child: const Icon(Icons.videocam),
+                  child: const Icon(Icons.videocam, color: Colors.white), // White icon
                 ),
                 ElevatedButton(
                   onPressed: () {
-                    // Handle unmatch
-                    print('Unmatched $name');
+                    // Handle delete
+                    print('Deleted $name');
                   },
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.red,
+                    backgroundColor: Colors.red, // Red background for delete button
                     padding: const EdgeInsets.symmetric(horizontal: 10),
                   ),
-                  child: const Text("Unmatch", style: TextStyle(fontSize: 14)),
+                  child: const Text(
+                    "DELETE", // Text in all caps
+                    style: TextStyle(color: Colors.white), // White text color
+                  ),
                 ),
               ],
             ),
@@ -172,6 +212,3 @@ class MatchCard extends StatelessWidget {
     );
   }
 }
-
-
-
