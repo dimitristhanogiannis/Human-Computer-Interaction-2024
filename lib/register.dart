@@ -38,89 +38,64 @@ class _SignUpScreenState extends State<SignUpScreen> {
       });
     }
   }
-/*
+
   Future<void> _getLocation() async {
     bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
     if (!serviceEnabled) {
-      print("Location services are disabled.");
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+        content: Text('Please enable location services'),
+      ));
       return;
     }
 
     LocationPermission permission = await Geolocator.checkPermission();
-    if (permission == LocationPermission.deniedForever) {
-      return;
-    }
 
-    Position position = await Geolocator.getCurrentPosition(
-        desiredAccuracy: LocationAccuracy.high);
-    setState(() {
-      _location = 'Lat: ${position.latitude}, Lon: ${position.longitude}';
-    });
-  }*/
-
-  StreamSubscription<Position>? _positionStreamSubscription; 
-
-  Future<void> _getLocation() async {
-  bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
-  if (!serviceEnabled) {
-    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-      content: Text('Please enable location services'),
-    ));
-    return;
-  }
-
-  LocationPermission permission = await Geolocator.checkPermission();
-
-  // Request permission if it is denied
-  if (permission == LocationPermission.denied) {
-    permission = await Geolocator.requestPermission();
     if (permission == LocationPermission.denied) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-        content: Text('Location permissions are denied'),
-      ));
+      permission = await Geolocator.requestPermission();
+      if (permission == LocationPermission.denied) {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+          content: Text('Location permissions are denied'),
+        ));
+        return;
+      }
+    }
+
+    if (permission == LocationPermission.deniedForever) {
+      showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('Location Permissions Permanently Denied'),
+          content: const Text(
+            'Please enable location permissions for this app in your device settings.',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Geolocator.openAppSettings();
+                Navigator.pop(context);
+              },
+              child: const Text('Open Settings'),
+            ),
+          ],
+        ),
+      );
       return;
     }
-  }
 
-  // Handle permanently denied permissions
-  if (permission == LocationPermission.deniedForever) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Location Permissions Permanently Denied'),
-        content: const Text(
-          'Please enable location permissions for this app in your device settings.',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () {
-              Geolocator.openAppSettings();
-              Navigator.pop(context);
-            },
-            child: const Text('Open Settings'),
-          ),
-        ],
-      ),
-    );
-    return;
+    try {
+      Position position = await Geolocator.getCurrentPosition(
+        desiredAccuracy: LocationAccuracy.high,
+      );
+      setState(() {
+        _location = 'Lat: ${position.latitude}, Lon: ${position.longitude}';
+      });
+      print("Latitude: ${position.latitude}, Longitude: ${position.longitude}");
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text('Error retrieving location: $e'),
+      ));
+    }
   }
-
-  // If permissions are granted, fetch the location
-  try {
-    Position position = await Geolocator.getCurrentPosition(
-      desiredAccuracy: LocationAccuracy.high,
-    );
-    setState(() {
-      _location = 'Lat: ${position.latitude}, Lon: ${position.longitude}';
-    });
-     print("Latitude: ${position.latitude}, Longitude: ${position.longitude}");
-  } catch (e) {
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-      content: Text('Error retrieving location: $e'),
-    ));
-  }
-}
-
 
   @override
   Widget build(BuildContext context) {
@@ -128,7 +103,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
-        toolbarHeight: 0, // Remove the app bar space
+        toolbarHeight: 0,
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -136,7 +111,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // CamConnect logo
               Center(
                 child: Text(
                   'CamConnect',
@@ -147,7 +121,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   ),
                 ),
               ),
-              // Add extra space below the logo
               const SizedBox(height: 120),
               Row(
                 children: [
@@ -333,15 +306,16 @@ class _SignUpScreenState extends State<SignUpScreen> {
                     child: SwitchListTile(
                       title: const Text('Use my location'),
                       value: useLocation,
+                      activeColor: deepPurple, // Updated color
                       onChanged: (bool value) {
-                         setState(() {
-                         useLocation = value;
-                         if (useLocation) {
-                         print('Fetching location...');
-                         _getLocation();
-                             }
-                           });
-                        },
+                        setState(() {
+                          useLocation = value;
+                          if (useLocation) {
+                            print('Fetching location...');
+                            _getLocation();
+                          }
+                        });
+                      },
                     ),
                   ),
                 ],
@@ -358,7 +332,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
                 ),
                 child: const Text('Submit'),
               ),
-              
             ],
           ),
         ),
