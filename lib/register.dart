@@ -38,6 +38,26 @@ class _SignUpScreenState extends State<SignUpScreen> {
       });
     }
   }
+<<<<<<< HEAD
+
+
+  StreamSubscription<Position>? _positionStreamSubscription; 
+
+  Future<void> _getLocation() async {
+  bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+  if (!serviceEnabled) {
+    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+      content: Text('Please enable location services'),
+    ));
+    return;
+  }
+
+  LocationPermission permission = await Geolocator.checkPermission();
+
+  // Request permission if it is denied
+  if (permission == LocationPermission.denied) {
+    permission = await Geolocator.requestPermission();
+=======
 
   Future<void> _getLocation() async {
     bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
@@ -50,6 +70,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
     LocationPermission permission = await Geolocator.checkPermission();
 
+>>>>>>> 2add6605063bd79b19ae7ea209b2eb6d9f9a26d5
     if (permission == LocationPermission.denied) {
       permission = await Geolocator.requestPermission();
       if (permission == LocationPermission.denied) {
