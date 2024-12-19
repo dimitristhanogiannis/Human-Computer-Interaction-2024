@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:geolocator/geolocator.dart';
-import 'dart:async';
 
 class SignUpScreen extends StatefulWidget {
   const SignUpScreen({super.key});
@@ -27,9 +26,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
   final ImagePicker _picker = ImagePicker();
 
-  static const Color lightGray = Color(0xFFE0E0E0);
-  static const Color deepPurple = Color(0xFF7B1FA2);
-
   Future<void> _pickImage() async {
     final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
     if (image != null) {
@@ -38,26 +34,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
       });
     }
   }
-<<<<<<< HEAD
-
-
-  StreamSubscription<Position>? _positionStreamSubscription; 
-
-  Future<void> _getLocation() async {
-  bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
-  if (!serviceEnabled) {
-    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-      content: Text('Please enable location services'),
-    ));
-    return;
-  }
-
-  LocationPermission permission = await Geolocator.checkPermission();
-
-  // Request permission if it is denied
-  if (permission == LocationPermission.denied) {
-    permission = await Geolocator.requestPermission();
-=======
 
   Future<void> _getLocation() async {
     bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
@@ -69,8 +45,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
     }
 
     LocationPermission permission = await Geolocator.checkPermission();
-
->>>>>>> 2add6605063bd79b19ae7ea209b2eb6d9f9a26d5
     if (permission == LocationPermission.denied) {
       permission = await Geolocator.requestPermission();
       if (permission == LocationPermission.denied) {
@@ -120,6 +94,9 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
   @override
   Widget build(BuildContext context) {
+    const Color lightGray = Color(0xFFE0E0E0);
+    const Color deepPurple = Color(0xFF7B1FA2);
+
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.transparent,
@@ -327,7 +304,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                     child: SwitchListTile(
                       title: const Text('Use my location'),
                       value: useLocation,
-                      activeColor: deepPurple, // Updated color
+                      activeColor: deepPurple,
                       onChanged: (bool value) {
                         setState(() {
                           useLocation = value;
