@@ -3,6 +3,8 @@ import 'package:camconnect/settings.dart';
 import 'package:camconnect/swipes.dart';
 import 'package:flutter/material.dart';
 import 'package:camconnect/video_call_page.dart';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
 
 class MatchesScreen extends StatelessWidget {
   final List<Map<String, String>> dummyMatches = [
@@ -171,15 +173,44 @@ class MatchCard extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
                 ElevatedButton(
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => VideoCallPage(
-                          channelName: "channel",
-                        ),
-                      ),
-                    );
+                  onPressed: () async {
+                    try {
+                      // Make POST request to create channel
+                      final response = await http.post(
+                        Uri.parse('http://dimkar12.pythonanywhere.com/create_channel'),
+                        headers: {'Content-Type': 'application/json'},
+                      );
+
+                      if (response.statusCode == 200) {
+                        final data = json.decode(response.body);
+                        if (data['success'] == true) {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => VideoCallPage(
+                                channelName: data['channel_name'],
+                                token: data['token'],
+                              ),
+                            ),
+                          );
+                        } else {
+                          // Show error message
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text('Failed to create channel: ${data['error']}')),
+                          );
+                        }
+                      } else {
+                        // Show error message
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Failed to connect to server')),
+                        );
+                      }
+                    } catch (e) {
+                      // Show error message
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text('Error: $e')),
+                      );
+                    }
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: deepPurple,
@@ -187,6 +218,7 @@ class MatchCard extends StatelessWidget {
                   ),
                   child: const Icon(Icons.videocam, color: Colors.white),
                 ),
+
                 ElevatedButton(
                   onPressed: () {
                     print('Deleted $name');

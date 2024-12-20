@@ -6,13 +6,16 @@ import 'package:permission_handler/permission_handler.dart';
 // Fill in the app ID obtained from the Agora Console
 const appId = "4d3c0d2539e849ffa231cf29a7abe5c4";
 
-// Replace with your temporary token generated in the Agora Console
-const token = "007eJxTYEhxeXX6qJ91U4JZxb1ms5dx62Nk/ogpMv1q73DTTr6jm6vAYJJinGyQYmRqbJlqYWKZlpZoZGyYnGZkmWiemJRqmmySsiMpvSGQkcFgSQkjIwMEgvjsDMkZiXl5qTkMDAB71x/h";
 
 class VideoCallPage extends StatefulWidget {
-  final String channelName; // Add channelName parameter
+  final String channelName;
+  final String token;
 
-  const VideoCallPage({Key? key, required this.channelName}) : super(key: key);
+  const VideoCallPage({
+    Key? key,
+    required this.channelName,
+    required this.token,
+  }) : super(key: key);
 
   @override
   _VideoCallPageState createState() => _VideoCallPageState();
@@ -22,8 +25,8 @@ class _VideoCallPageState extends State<VideoCallPage> {
   int? _remoteUid;
   bool _localUserJoined = false;
   late RtcEngine _engine;
-  bool _isMuted = false; // Track mute state
-  bool _isCameraOff = false; // Track camera state
+  bool _isMuted = false;
+  bool _isCameraOff = false;
 
   @override
   void initState() {
@@ -32,13 +35,13 @@ class _VideoCallPageState extends State<VideoCallPage> {
   }
 
   Future<void> initAgora() async {
-    // Get microphone and camera permissions
+    // Get permissions
     await [Permission.microphone, Permission.camera].request();
 
     // Create RtcEngine instance
     _engine = await createAgoraRtcEngine();
 
-    // Initialize RtcEngine and set the channel profile to live broadcasting
+    // Initialize RtcEngine
     await _engine.initialize(const RtcEngineContext(
       appId: appId,
       channelProfile: ChannelProfileType.channelProfileCommunication,
@@ -57,31 +60,44 @@ class _VideoCallPageState extends State<VideoCallPage> {
           _remoteUid = remoteUid;
         });
       },
-      onUserOffline: (RtcConnection connection, int remoteUid,
-          UserOfflineReasonType reason) {
+      onUserOffline: (RtcConnection connection, int remoteUid, UserOfflineReasonType reason) {
         debugPrint("remote user $remoteUid left channel");
         setState(() {
           _remoteUid = null;
         });
       },
+      onError: (ErrorCodeType err, String msg) {
+        debugPrint('Error: $err, $msg');
+        // Show error to user
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Agora error: $msg')),
+        );
+      },
     ));
 
-    await _engine.enableVideo();
-    await _engine.startPreview();
+    try {
+      await _engine.enableVideo();
+      await _engine.startPreview();
 
-    // Join the channel dynamically with the channelName passed from MatchesScreen
-    await _engine.joinChannel(
-      token: token,
-      channelId: widget.channelName,
-      options: const ChannelMediaOptions(
-        clientRoleType: ClientRoleType.clientRoleBroadcaster,
-        autoSubscribeAudio: true,
-        autoSubscribeVideo: true,
-        publishCameraTrack: true,
-        publishMicrophoneTrack: true,
-      ),
-      uid: 0,
-    );
+      // Join channel with the token from the server
+      await _engine.joinChannel(
+        token: widget.token,
+        channelId: widget.channelName,
+        options: const ChannelMediaOptions(
+          clientRoleType: ClientRoleType.clientRoleBroadcaster,
+          autoSubscribeAudio: true,
+          autoSubscribeVideo: true,
+          publishCameraTrack: true,
+          publishMicrophoneTrack: true,
+        ),
+        uid: 0,
+      );
+    } catch (e) {
+      debugPrint('Error initializing Agora: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to initialize video call: $e')),
+      );
+    }
   }
 
   @override
