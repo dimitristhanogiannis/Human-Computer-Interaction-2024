@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_storage/firebase_storage.dart';
+import 'dart:io';
 
 class SignUpScreen extends StatefulWidget {
   const SignUpScreen({super.key});
@@ -32,6 +36,22 @@ class _SignUpScreenState extends State<SignUpScreen> {
       setState(() {
         _profilePhoto = image.path;
       });
+    }
+  }
+
+  Future<String?> _uploadProfilePhoto(String userId) async {
+    if (_profilePhoto == null) return null;
+
+    try {
+      final storageRef =
+          FirebaseStorage.instance.ref().child('profile_photos/$userId.jpg');
+      await storageRef.putFile(File(_profilePhoto!));
+      return await storageRef.getDownloadURL();
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error uploading profile photo: $e')),
+      );
+      return null;
     }
   }
 
@@ -84,10 +104,83 @@ class _SignUpScreenState extends State<SignUpScreen> {
       setState(() {
         _location = 'Lat: ${position.latitude}, Lon: ${position.longitude}';
       });
-      print("Latitude: ${position.latitude}, Longitude: ${position.longitude}");
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
         content: Text('Error retrieving location: $e'),
+      ));
+    }
+  }
+
+  Future<void> _registerUser() async {
+    try {
+      final auth = FirebaseAuth.instance;
+      final firestore = FirebaseFirestore.instance;
+
+      // Create user in Firebase Authentication
+      UserCredential userCredential = await auth.createUserWithEmailAndPassword(
+        email: _emailController.text.trim(),
+        password: _passwordController.text.trim(),
+      );
+
+      // Upload profile photo
+      String? profilePhotoUrl =
+          await _uploadProfilePhoto(userCredential.user!.uid);
+
+      // Extract location if enabled
+      GeoPoint? geoLocation;
+      if (useLocation) {
+        try {
+          Position position = await Geolocator.getCurrentPosition(
+            desiredAccuracy: LocationAccuracy.high,
+          );
+          geoLocation = GeoPoint(position.latitude, position.longitude);
+        } catch (e) {
+          print('Error retrieving location: $e');
+        }
+      }
+
+      // Save user details in Firestore
+      try {
+        await firestore.collection('users').doc(userCredential.user!.uid).set({
+          'firstName': _firstNameController.text.trim(),
+          'lastName': _lastNameController.text.trim(),
+          'username': _usernameController.text.trim(),
+          'email': _emailController.text.trim(),
+          'phone': _phoneController.text.trim(),
+          'age': int.tryParse(_ageController.text.trim()) ?? 0,
+          'bio': _bioController.text.trim(),
+          'sex': _sex,
+          'preference': _preference,
+          'location': geoLocation ?? 'Location not provided',
+          'profilePhoto': profilePhotoUrl,
+          'useLocation': useLocation,
+          'swipes': {
+            'liked': [],
+            'disliked': [],
+          },
+          'matches': [],
+          'score': 0,
+        });
+        print('User added to Firestore successfully');
+      } catch (e) {
+        print('Error adding user to Firestore: $e');
+      }
+
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+        content: Text('User registered successfully!'),
+      ));
+
+      // Navigate to another screen if needed
+      Navigator.pop(context);
+    } on FirebaseAuthException catch (e) {
+      print('FirebaseAuthException: $e');
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text('Error: ${e.message}'),
+      ));
+    } catch (e) {
+      print('Unknown error: $e');
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text('An error occurred'),
       ));
     }
   }
@@ -309,7 +402,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
                         setState(() {
                           useLocation = value;
                           if (useLocation) {
-                            print('Fetching location...');
                             _getLocation();
                           }
                         });
@@ -320,9 +412,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
               ),
               const SizedBox(height: 10),
               ElevatedButton(
-                onPressed: () {
-                  Navigator.pop(context);
-                },
+                onPressed: _registerUser,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: deepPurple,
                   foregroundColor: Colors.white,

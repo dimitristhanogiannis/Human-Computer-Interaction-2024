@@ -2,17 +2,133 @@ import 'package:camconnect/leaderboard.dart';
 import 'package:camconnect/settings.dart';
 import 'package:camconnect/swipes.dart';
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 import 'package:camconnect/video_call_page.dart';
 
-class MatchesScreen extends StatelessWidget {
-  final List<Map<String, String>> dummyMatches = [
-    {"name": "Alex", "image": "https://via.placeholder.com/150"},
-    {"name": "Jordan", "image": "https://via.placeholder.com/150"},
-    {"name": "Taylor", "image": "https://via.placeholder.com/150"},
-    {"name": "Morgan", "image": "https://via.placeholder.com/150"},
-    {"name": "Chris", "image": "https://via.placeholder.com/150"},
-    {"name": "Sam", "image": "https://via.placeholder.com/150"},
-  ];
+class MatchesScreen extends StatefulWidget {
+  const MatchesScreen({Key? key}) : super(key: key);
+
+  @override
+  State<MatchesScreen> createState() => _MatchesScreenState();
+}
+
+class _MatchesScreenState extends State<MatchesScreen> {
+  final String currentUserId = FirebaseAuth.instance.currentUser!.uid;
+  List<Map<String, dynamic>> matches = [];
+  bool isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _listenToMatches();
+  }
+
+// Listen to changes in the user's matches list in Firestore
+  void _listenToMatches() {
+    FirebaseFirestore.instance
+        .collection('users')
+        .doc(currentUserId)
+        .snapshots()
+        .listen((snapshot) async {
+      if (snapshot.exists) {
+        List<dynamic> matchIds = snapshot.data()!['matches'] ?? [];
+        List<Map<String, dynamic>> matchData = [];
+
+        for (String matchId in matchIds) {
+          final matchDoc = await FirebaseFirestore.instance
+              .collection('users')
+              .doc(matchId)
+              .get();
+          if (matchDoc.exists) {
+            matchData.add({
+              'name': matchDoc.data()!['name'] ?? 'Unknown',
+              'image': matchDoc.data()!['profilePhoto'] ?? '',
+              'id': matchId,
+            });
+          }
+        }
+
+        setState(() {
+          matches = matchData;
+          isLoading = false;
+        });
+      }
+    }, onError: (error) {
+      print('Error listening to matches: $error');
+      setState(() {
+        isLoading = false;
+      });
+    });
+  }
+
+  Future<void> _deleteMatch(String matchId) async {
+    try {
+      // Remove the match from both users
+      await FirebaseFirestore.instance
+          .collection('users')
+          .doc(currentUserId)
+          .update({
+        'matches': FieldValue.arrayRemove([matchId]),
+      });
+      await FirebaseFirestore.instance.collection('users').doc(matchId).update({
+        'matches': FieldValue.arrayRemove([currentUserId]),
+      });
+
+      setState(() {
+        matches.removeWhere((match) => match['id'] == matchId);
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Match deleted')),
+      );
+    } catch (e) {
+      print('Error deleting match: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error deleting match: $e')),
+      );
+    }
+  }
+
+  Future<void> _startVideoCall(String matchName) async {
+    try {
+      // Make POST request to create channel
+      final response = await http.post(
+        Uri.parse('http://dimkar12.pythonanywhere.com/create_channel'),
+        headers: {'Content-Type': 'application/json'},
+      );
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        if (data['success'] == true) {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => VideoCallPage(
+                channelName: data['channel_name'],
+                token: data['token'],
+              ),
+            ),
+          );
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+                content: Text('Failed to create channel: ${data['error']}')),
+          );
+        }
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Failed to connect to server')),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error: $e')),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -41,24 +157,32 @@ class MatchesScreen extends StatelessWidget {
           },
         ),
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: GridView.builder(
-          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 2,
-            crossAxisSpacing: 10.0,
-            mainAxisSpacing: 10.0,
-            childAspectRatio: 0.8, // Adjusted aspect ratio to make the boxes taller
-          ),
-          itemCount: dummyMatches.length,
-          itemBuilder: (context, index) {
-            return MatchCard(
-              name: dummyMatches[index]["name"]!,
-              image: dummyMatches[index]["image"]!,
-            );
-          },
-        ),
-      ),
+      body: isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : matches.isEmpty
+              ? const Center(child: Text('No matches yet!'))
+              : Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: GridView.builder(
+                    gridDelegate:
+                        const SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 2,
+                      crossAxisSpacing: 10.0,
+                      mainAxisSpacing: 10.0,
+                      childAspectRatio: 0.8,
+                    ),
+                    itemCount: matches.length,
+                    itemBuilder: (context, index) {
+                      return MatchCard(
+                        name: matches[index]['name'],
+                        image: matches[index]['image'],
+                        onDelete: () => _deleteMatch(matches[index]['id']),
+                        onVideoCall: () =>
+                            _startVideoCall(matches[index]['name']),
+                      );
+                    },
+                  ),
+                ),
       bottomNavigationBar: BottomNavigationBar(
         selectedItemColor: deepPurple,
         unselectedItemColor: deepPurple,
@@ -77,8 +201,8 @@ class MatchesScreen extends StatelessWidget {
           }
         },
         items: [
-          BottomNavigationBarItem(
-            icon: const Icon(
+          const BottomNavigationBarItem(
+            icon: Icon(
               Icons.favorite,
               color: deepPurple,
               size: 24,
@@ -103,8 +227,8 @@ class MatchesScreen extends StatelessWidget {
             ),
             label: "",
           ),
-          BottomNavigationBarItem(
-            icon: const Icon(
+          const BottomNavigationBarItem(
+            icon: Icon(
               Icons.groups,
               color: deepPurple,
               size: 24,
@@ -120,10 +244,14 @@ class MatchesScreen extends StatelessWidget {
 class MatchCard extends StatelessWidget {
   final String name;
   final String image;
+  final VoidCallback onDelete;
+  final VoidCallback onVideoCall;
 
   const MatchCard({
     required this.name,
     required this.image,
+    required this.onDelete,
+    required this.onVideoCall,
   });
 
   @override
@@ -159,7 +287,10 @@ class MatchCard extends StatelessWidget {
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(10),
                 image: DecorationImage(
-                  image: NetworkImage(image), // Updated to use network images
+                  image: image.isNotEmpty
+                      ? NetworkImage(image)
+                      : const AssetImage('assets/placeholder.jpg')
+                          as ImageProvider,
                   fit: BoxFit.cover,
                 ),
               ),
@@ -171,16 +302,7 @@ class MatchCard extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
                 ElevatedButton(
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => VideoCallPage(
-                          channelName: "channel",
-                        ),
-                      ),
-                    );
-                  },
+                  onPressed: onVideoCall,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: deepPurple,
                     padding: const EdgeInsets.symmetric(horizontal: 10),
@@ -188,9 +310,7 @@ class MatchCard extends StatelessWidget {
                   child: const Icon(Icons.videocam, color: Colors.white),
                 ),
                 ElevatedButton(
-                  onPressed: () {
-                    print('Deleted $name');
-                  },
+                  onPressed: onDelete,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.red,
                     padding: const EdgeInsets.symmetric(horizontal: 10),
