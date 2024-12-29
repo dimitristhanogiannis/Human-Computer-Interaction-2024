@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "824133878692",
+    "project_id": "camconnect-b8792",
+    "storage_bucket": "camconnect-b8792.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:824133878692:android:b7d724e6667761c08ab731",
+        "android_client_info": {
+          "package_name": "com.example.camconnect"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCKN0zPILgMOC7vpJG_6tauoiFXL3rv0Oc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

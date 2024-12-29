@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_storage/firebase_storage.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class SettingsScreen extends StatefulWidget {
   @override
@@ -10,18 +13,92 @@ class SettingsScreen extends StatefulWidget {
 
 class _SettingsScreenState extends State<SettingsScreen> {
   bool useLocation = true;
-  String sexPreference = "Female";
   String username = "DefaultUsername";
   String bio = "This is my bio";
-  String age = "25";
-  String _sex = 'Male';
-  String _preference = 'Female';
+  String age = "Select your age";
+  String _sex = 'change your sex';
+  String _preference = 'Change your preference';
   String _location = 'Location: Enabled';
   File? _profilePicture;
 
+  @override
+  void initState() {
+    super.initState();
+    _loadUserInfo();
+  }
+
+  // Load user information from Firebase
+  Future<void> _loadUserInfo() async {
+    try {
+      final userId = FirebaseAuth.instance.currentUser!.uid;
+      final userDoc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(userId)
+          .get();
+
+      if (userDoc.exists) {
+        final data = userDoc.data()!;
+        setState(() {
+          username = data['username'] ?? username;
+          bio = data['bio'] ?? bio;
+          age = data['age'] ?? age;
+          _sex = data['sex'] ?? _sex;
+          _preference = data['preference'] ?? _preference;
+          if (data['profilePicture'] != null) {
+            // Handle profile picture loading logic here if necessary
+          }
+        });
+      }
+    } catch (e) {
+      print('Error loading user info: $e');
+    }
+  }
+
+  // Update user information in Firebase
+  Future<void> _updateUserInfo(String field, String value) async {
+    try {
+      final userId = FirebaseAuth.instance.currentUser!.uid;
+      final userDoc =
+          FirebaseFirestore.instance.collection('users').doc(userId);
+
+      await userDoc.update({field: value});
+
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text('$field updated successfully!'),
+      ));
+    } catch (e) {
+      print('Error updating $field: $e');
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text('Error updating $field: $e'),
+      ));
+    }
+  }
+
+  // Upload profile picture to Firebase Storage
+  Future<void> _uploadProfilePicture(File file) async {
+    try {
+      final userId = FirebaseAuth.instance.currentUser!.uid;
+      final storageRef =
+          FirebaseStorage.instance.ref().child('profile_pictures/$userId.jpg');
+
+      await storageRef.putFile(file);
+
+      final downloadUrl = await storageRef.getDownloadURL();
+      await _updateUserInfo('profilePicture', downloadUrl);
+
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text('Profile picture uploaded successfully!'),
+      ));
+    } catch (e) {
+      print('Error uploading profile picture: $e');
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text('Error uploading profile picture: $e'),
+      ));
+    }
+  }
+
   // Function to get location
   Future<void> _getLocation() async {
-    print("Requesting location...");
     bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
 
     if (!serviceEnabled) {
@@ -70,13 +147,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
         desiredAccuracy: LocationAccuracy.high,
       );
 
-      print("Latitude: ${position.latitude}, Longitude: ${position.longitude}");
       setState(() {
         _location = 'Location: Enabled';
       });
 
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text('Location retrieved: Lat: ${position.latitude}, Lon: ${position.longitude}'),
+        content: Text(
+            'Location retrieved: Lat: ${position.latitude}, Lon: ${position.longitude}'),
       ));
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
@@ -101,9 +178,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           _profilePicture = File(pickedImage.path);
         });
 
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-          content: Text('Profile picture updated successfully!'),
-        ));
+        await _uploadProfilePicture(_profilePicture!);
       } else {
         print('No image selected.');
       }
@@ -123,7 +198,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
       appBar: AppBar(
         title: const Text(
           'Settings',
-          style: TextStyle(fontSize: 30, color: deepPurple, fontWeight: FontWeight.bold),
+          style: TextStyle(
+              fontSize: 30, color: deepPurple, fontWeight: FontWeight.bold),
         ),
         centerTitle: true,
         leading: IconButton(
@@ -139,7 +215,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
       body: Column(
         children: [
           const SizedBox(height: 40),
-          // Profile Picture Display
           Center(
             child: GestureDetector(
               onTap: _pickImage,
@@ -147,9 +222,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 radius: 50,
                 backgroundImage: _profilePicture != null
                     ? FileImage(_profilePicture!)
-                    : const AssetImage('assets/default_avatar.png') as ImageProvider,
+                    : const AssetImage('assets/default_avatar.png')
+                        as ImageProvider,
                 child: _profilePicture == null
-                    ? const Icon(Icons.camera_alt, size: 50, color: Colors.white)
+                    ? const Icon(Icons.camera_alt,
+                        size: 50, color: Colors.white)
                     : null,
               ),
             ),
@@ -159,7 +236,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
             child: ListView(
               padding: const EdgeInsets.symmetric(horizontal: 16),
               children: [
-                // Combine Use Location Switch with Location Information
                 _SettingsOption(
                   title: _location,
                   trailing: Switch(
@@ -172,7 +248,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           _getLocation();
                         } else {
                           _location = 'Location: Disabled';
-                          print('Location tracking disabled');
                         }
                       });
                     },
@@ -182,65 +257,76 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 _SettingsOption(
                   title: 'Sex: $_sex',
                   onTap: () async {
-                    await _showDropdown(context, 'Sex', ['Male', 'Female', 'Other'], (value) {
+                    await _showDropdown(
+                        context, 'Sex', ['Male', 'Female', 'Other'], (value) {
                       setState(() => _sex = value);
+                      _updateUserInfo('sex', value);
                     });
                   },
                 ),
                 _SettingsOption(
                   title: 'Preference: $_preference',
                   onTap: () async {
-                    await _showDropdown(context, 'Preference', ['Male', 'Female', 'Both'], (value) {
+                    await _showDropdown(
+                        context, 'Preference', ['Male', 'Female', 'Both'],
+                        (value) {
                       setState(() => _preference = value);
+                      _updateUserInfo('preference', value);
                     });
                   },
                 ),
                 _SettingsOption(
                   title: 'Age: $age',
                   onTap: () async {
-                    String? result = await _showInputDialog(context, 'Change Age', age);
+                    String? result =
+                        await _showInputDialog(context, 'Change Age', age);
                     if (result != null) {
                       setState(() {
                         age = result;
                       });
+                      await _updateUserInfo('age', result);
                     }
                   },
                 ),
                 _SettingsOption(
                   title: 'Username: $username',
                   onTap: () async {
-                    String? result = await _showInputDialog(context, 'Change Username', username);
+                    String? result = await _showInputDialog(
+                        context, 'Change Username', username);
                     if (result != null) {
                       setState(() {
                         username = result;
                       });
+                      await _updateUserInfo('username', result);
                     }
                   },
                 ),
                 _SettingsOption(
                   title: 'Bio: $bio',
                   onTap: () async {
-                    String? result = await _showInputDialog(context, 'Change Bio', bio);
+                    String? result =
+                        await _showInputDialog(context, 'Change Bio', bio);
                     if (result != null) {
                       setState(() {
                         bio = result;
                       });
+                      await _updateUserInfo('bio', result);
                     }
                   },
                 ),
                 const SizedBox(height: 20),
-                // Logout Button
                 Center(
                   child: ElevatedButton(
                     onPressed: () {
-                      print('Logged out');
+                      FirebaseAuth.instance.signOut();
                       Navigator.pushReplacementNamed(context, '/login');
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: deepPurple,
                       padding: const EdgeInsets.symmetric(horizontal: 50),
                     ),
-                    child: const Text('Logout', style: TextStyle(color: Colors.white)),
+                    child: const Text('Logout',
+                        style: TextStyle(color: Colors.white)),
                   ),
                 ),
               ],
@@ -276,8 +362,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-  Future<String?> _showInputDialog(BuildContext context, String title, String initialValue) {
-    TextEditingController controller = TextEditingController(text: initialValue);
+  Future<String?> _showInputDialog(
+      BuildContext context, String title, String initialValue) {
+    TextEditingController controller =
+        TextEditingController(text: initialValue);
     return showDialog<String>(
       context: context,
       builder: (BuildContext context) {

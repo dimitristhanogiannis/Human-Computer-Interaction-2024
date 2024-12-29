@@ -5,14 +5,54 @@ import 'package:flutter/material.dart';
 
 class LeaderboardScreen extends StatelessWidget {
   final List<Map<String, dynamic>> leaderboardData = [
-    {"name": "Alex", "points": 1200, "image": "assets/user1.jpg", "isCurrentUser": false},
-    {"name": "Jordan", "points": 1150, "image": "assets/user2.jpg", "isCurrentUser": false},
-    {"name": "Taylor", "points": 1100, "image": "assets/user3.jpg", "isCurrentUser": false},
-    {"name": "Morgan", "points": 1050, "image": "assets/user4.jpg", "isCurrentUser": false},
-    {"name": "Chris", "points": 1020, "image": "assets/user5.jpg", "isCurrentUser": false},
-    {"name": "Sam", "points": 980, "image": "assets/user6.jpg", "isCurrentUser": true},
-    {"name": "Jamie", "points": 950, "image": "assets/user7.jpg", "isCurrentUser": false},
-    {"name": "Pat", "points": 920, "image": "assets/user8.jpg", "isCurrentUser": false},
+    {
+      "name": "Alex",
+      "points": 1200,
+      "image": "assets/user1.jpg",
+      "isCurrentUser": false
+    },
+    {
+      "name": "Jordan",
+      "points": 1150,
+      "image": "assets/user2.jpg",
+      "isCurrentUser": false
+    },
+    {
+      "name": "Taylor",
+      "points": 1100,
+      "image": "assets/user3.jpg",
+      "isCurrentUser": false
+    },
+    {
+      "name": "Morgan",
+      "points": 1050,
+      "image": "assets/user4.jpg",
+      "isCurrentUser": false
+    },
+    {
+      "name": "Chris",
+      "points": 1020,
+      "image": "assets/user5.jpg",
+      "isCurrentUser": false
+    },
+    {
+      "name": "Sam",
+      "points": 980,
+      "image": "assets/user6.jpg",
+      "isCurrentUser": true
+    },
+    {
+      "name": "Jamie",
+      "points": 950,
+      "image": "assets/user7.jpg",
+      "isCurrentUser": false
+    },
+    {
+      "name": "Pat",
+      "points": 920,
+      "image": "assets/user8.jpg",
+      "isCurrentUser": false
+    },
   ];
 
   static const Color deepPurple = Color(0xFF7B1FA2);
@@ -23,7 +63,8 @@ class LeaderboardScreen extends StatelessWidget {
       appBar: AppBar(
         title: const Text(
           'Leaderboard',
-          style: TextStyle(fontSize: 30, color: deepPurple, fontWeight: FontWeight.bold),
+          style: TextStyle(
+              fontSize: 30, color: deepPurple, fontWeight: FontWeight.bold),
         ),
         centerTitle: true,
         backgroundColor: Colors.transparent,
@@ -58,7 +99,8 @@ class LeaderboardScreen extends StatelessWidget {
                         color: deepPurple,
                         borderRadius: BorderRadius.circular(20),
                       ),
-                      padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+                      padding: const EdgeInsets.symmetric(
+                          vertical: 8, horizontal: 16),
                       child: Text(
                         user["name"],
                         style: const TextStyle(
@@ -88,7 +130,8 @@ class LeaderboardScreen extends StatelessWidget {
                         color: deepPurple,
                         borderRadius: BorderRadius.circular(20),
                       ),
-                      padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+                      padding: const EdgeInsets.symmetric(
+                          vertical: 8, horizontal: 16),
                       child: Text(
                         '${user["points"]} pts',
                         style: const TextStyle(
