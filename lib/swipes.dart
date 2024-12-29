@@ -52,58 +52,79 @@ class _SwipePageState extends State<SwipePage> {
   }
 
   // Listen for users matching preferences in Firestore
-  void _listenForUsers() async {
+  void _listenForUsers() {
     try {
-      final currentUserDoc = await FirebaseFirestore.instance
-          .collection('users')
-          .doc(currentUserId)
-          .get();
+      FirebaseFirestore.instance.collection('users').snapshots().listen((snapshot) {
+        QueryDocumentSnapshot<Map<String, dynamic>>? userDoc;
+        
+        try {
+          // Attempt to find the document
+          userDoc = snapshot.docs.firstWhere((doc) => doc.id == currentUserId);
+        } catch (e) {
+          // No document found
+          userDoc = null;
+        }
 
-      if (!currentUserDoc.exists) {
-        throw Exception('Current user document not found');
-      }
-
-      List<String> swipedUserIds = [
-        ...currentUserDoc.data()?['swipes']['liked'] ?? [],
-        ...currentUserDoc.data()?['swipes']['disliked'] ?? [],
-      ];
-
-      FirebaseFirestore.instance
-          .collection('users')
-          .snapshots()
-          .listen((snapshot) {
-        final filteredDocs = snapshot.docs.where((doc) =>
-            doc.id != currentUserId &&
-            !swipedUserIds.contains(doc.id) &&
-            (userPreference == 'Both' || doc['sex'] == userPreference));
-
-        final newSwipeItems = filteredDocs.map((doc) {
-          final userData = doc.data();
-          final userName = userData['name'] ?? 'Unknown'; // Handle null name
-          return SwipeItem(
-            content: userData,
-            likeAction: () async {
-              await _logSwipe(swipedUserId: doc.id, action: 'like');
-              await _handleLike(doc.id, userName);
-            },
-            nopeAction: () async {
-              await _logSwipe(swipedUserId: doc.id, action: 'dislike');
-              print('Disliked $userName');
-              setState(() {
-                _swipeItems.removeWhere((item) => item.content['id'] == doc.id);
-                _matchEngine = MatchEngine(swipeItems: _swipeItems);
-              });
-            },
+        if (userDoc == null) {
+          setState(() {
+            isLoading = false;
+            _swipeItems.clear();
+          });
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text("Current user document not found."),
+            ),
           );
+          return;
+        }
+
+        final currentUserData = userDoc.data();
+        List<String> swipedUserIds = [
+          ...currentUserData?['like'] ?? [],
+          ...currentUserData?['dislike'] ?? [],
+        ];
+
+        final filteredDocs = snapshot.docs.where((doc) {
+          final userData = doc.data();
+          return doc.id != currentUserId &&
+              !swipedUserIds.contains(doc.id) &&
+              (userPreference == 'Both' || (userData['sex'] ?? '') == userPreference);
         }).toList();
 
-        if (!mounted || _swipeItems.length == newSwipeItems.length) return;
+        if (!mounted) return;
 
         setState(() {
-          _swipeItems.clear();
-          _swipeItems.addAll(newSwipeItems);
-          _matchEngine = MatchEngine(swipeItems: _swipeItems);
           isLoading = false;
+
+          if (filteredDocs.isEmpty) {
+            _swipeItems.clear();
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text("No users available to swipe!"),
+              ),
+            );
+          } else {
+            _swipeItems.clear();
+            _swipeItems.addAll(filteredDocs.map((doc) {
+              final userData = doc.data();
+              final String userName = "${userData['firstName'] ?? ''} ${userData['lastName'] ?? ''}".trim();
+              return SwipeItem(
+                content: userData,
+                likeAction: () async {
+                  await _logSwipe(swipedUserId: doc.id, action: 'like');
+                  await _handleLike(doc.id, userName.isNotEmpty ? userName : 'Unknown');
+                },
+                nopeAction: () async {
+                  await _logSwipe(swipedUserId: doc.id, action: 'dislike');
+                  setState(() {
+                    _swipeItems.removeWhere((item) => item.content['id'] == doc.id);
+                    _matchEngine = MatchEngine(swipeItems: _swipeItems);
+                  });
+                },
+              );
+            }).toList());
+            _matchEngine = MatchEngine(swipeItems: _swipeItems);
+          }
         });
       });
     } catch (e) {
@@ -114,14 +135,48 @@ class _SwipePageState extends State<SwipePage> {
     }
   }
 
+  // Update score for a user
+  Future<void> _updateScore(String userId, int delta) async {
+    try {
+      final userDocRef = FirebaseFirestore.instance.collection('users').doc(userId);
+      await userDocRef.update({
+        'score': FieldValue.increment(delta),
+      });
+    } catch (e) {
+      print('Error updating score for $userId: $e');
+    }
+  }
+
   // Log swipes to Firestore
   Future<void> _logSwipe({
     required String swipedUserId,
     required String action, // "like" or "dislike"
   }) async {
     try {
+      final userDocRef = FirebaseFirestore.instance.collection('users').doc(currentUserId);
+      final userDoc = await userDocRef.get();
+
+      if (!userDoc.exists) {
+        print('Error: User document does not exist.');
+        return;
+      }
+
+      final currentUserData = userDoc.data() ?? {};
+
+      // Prevent conflicting swipes
+      if ((action == 'like' && currentUserData['dislike']?.contains(swipedUserId) == true) ||
+          (action == 'dislike' && currentUserData['like']?.contains(swipedUserId) == true)) {
+        print('Conflict detected: User already swiped in opposite direction');
+        return;
+      }
+
+      // Ensure the 'like' or 'dislike' array exists before adding to it
+      if (!currentUserData.containsKey(action)) {
+        await userDocRef.update({action: []});
+      }
+
       print('Starting _logSwipe: $action on $swipedUserId');
-      String docId = '${currentUserId}_$swipedUserId';
+      String docId = '${currentUserId}_$swipedUserId'; 
 
       // Add swipe to the swipes collection
       await FirebaseFirestore.instance.collection('swipes').doc(docId).set({
@@ -133,13 +188,17 @@ class _SwipePageState extends State<SwipePage> {
 
       print('Swipe logged in swipes collection: $docId');
 
-      // Update the current user's swipes field in the users collection
-      await FirebaseFirestore.instance
-          .collection('users')
-          .doc(currentUserId)
-          .update({
-        'swipes.$action': FieldValue.arrayUnion([swipedUserId]),
+      // Update the current user's like or dislike field in the users collection
+      await userDocRef.update({
+        action: FieldValue.arrayUnion([swipedUserId]),
       });
+
+      // Update the score for the swiped user
+      if (action == 'like') {
+        await _updateScore(swipedUserId, 10);
+      } else if (action == 'dislike') {
+        await _updateScore(swipedUserId, -5);
+      }
 
       print('User collection updated: added $swipedUserId to $action');
     } catch (e) {
@@ -170,7 +229,7 @@ class _SwipePageState extends State<SwipePage> {
       }
 
       // Check if likedUserId has also liked currentUserId
-      List likedUsers = likedUserDoc.data()?['swipes']['liked'] ?? [];
+      List likedUsers = likedUserDoc.data()?['like'] ?? [];
       if (likedUsers.contains(currentUserId)) {
         // Step 3: Mutual like found! Add each other to matches
         await FirebaseFirestore.instance
@@ -186,6 +245,10 @@ class _SwipePageState extends State<SwipePage> {
             .update({
           'matches': FieldValue.arrayUnion([currentUserId]),
         });
+
+        // Increase score for both users on match
+        await _updateScore(currentUserId, 5);
+        await _updateScore(likedUserId, 5);
 
         // Notify user of the match
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
@@ -253,8 +316,8 @@ class _SwipePageState extends State<SwipePage> {
       ),
       body: isLoading
           ? const Center(child: CircularProgressIndicator())
-          : _swipeItems.isEmpty
-              ? const Center(child: Text('No users to swipe!'))
+          : _swipeItems.isEmpty 
+              ? const Center(child: Text('No users to swipe!')) // Initial empty state
               : Column(
                   children: [
                     Expanded(
@@ -305,7 +368,7 @@ class _SwipePageState extends State<SwipePage> {
                                     borderRadius: BorderRadius.circular(8),
                                   ),
                                   child: Text(
-                                    "${user['name'] ?? 'Unknown'}, ${user['age'] ?? 'N/A'}",
+                                    "${user['firstName'] ?? ''} ${user['lastName'] ?? ''}, ${user['age'] ?? 'N/A'}", 
                                     style: const TextStyle(
                                       fontSize: 20,
                                       fontWeight: FontWeight.bold,
@@ -337,11 +400,16 @@ class _SwipePageState extends State<SwipePage> {
                         onStackFinished: () {
                           ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(
-                              content:
-                                  Text("You've reached the end of the list!"),
+                              content: Text("You've reached the end of the list!"),
                             ),
                           );
+
+                          // This is optional, depending on your desired behavior
+                          setState(() {
+                            _swipeItems.clear(); 
+                          });
                         },
+
                       ),
                     ),
                     Padding(
@@ -357,7 +425,7 @@ class _SwipePageState extends State<SwipePage> {
                             ),
                             onPressed: () => _matchEngine.currentItem?.nope(),
                             child:
-                                const Icon(Icons.clear, color: white, size: 48),
+                            const Icon(Icons.clear, color: white, size: 48),
                           ),
                           ElevatedButton(
                             style: ElevatedButton.styleFrom(
@@ -367,7 +435,7 @@ class _SwipePageState extends State<SwipePage> {
                             ),
                             onPressed: () => _matchEngine.currentItem?.like(),
                             child:
-                                const Icon(Icons.check, color: white, size: 48),
+                            const Icon(Icons.check, color: white, size: 48),
                           ),
                         ],
                       ),
