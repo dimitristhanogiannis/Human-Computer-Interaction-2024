@@ -1,6 +1,7 @@
 import 'package:camconnect/swipes.dart';
 import 'package:flutter/material.dart';
 import 'register.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -10,43 +11,57 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  final TextEditingController _usernameController = TextEditingController();
+  final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
+  bool _isLoading = false;
 
   Future<void> _login() async {
-    String username = _usernameController.text;
-    String password = _passwordController.text;
+    String email = _emailController.text.trim();
+    String password = _passwordController.text.trim();
 
-    if (username.isEmpty || password.isEmpty) {
-      // Handle error if fields are empty
+    if (email.isEmpty || password.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Please enter both username and password')),
+        const SnackBar(content: Text('Please enter both email and password')),
       );
       return;
     }
 
-    // Test username and password values (for testing purposes)
-    // You can add more test cases as needed
-    Map<String, String> validCredentials = {
-      'testuser': 'password123',
-      'admin': 'admin123',
-      'user1': 'userpass1',
-    };
+    setState(() {
+      _isLoading = true;
+    });
 
-    // Simulate login (replace this with actual login logic like API calls)
-    await Future.delayed(Duration(seconds: 0));  // Simulate a delay
+    try {
+      final auth = FirebaseAuth.instance;
 
-    // Check if entered username and password match valid credentials
-    if (validCredentials.containsKey(username) && validCredentials[username] == password) {
-    // If login is successful, navigate to the next page
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(builder: (context) => SwipePage()), // Navigate to the actual screen
-    );
-    }else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Invalid username or password')),
+      // Attempt to sign in with Firebase
+      await auth.signInWithEmailAndPassword(
+        email: email,
+        password: password,
       );
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Login successful!')),
+      );
+
+      // Navigate to the SwipePage after successful login
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => const SwipePage()),
+      );
+    } on FirebaseAuthException catch (e) {
+      String message = 'An error occurred, please try again.';
+      if (e.code == 'user-not-found') {
+        message = 'No user found with this email.';
+      } else if (e.code == 'wrong-password') {
+        message = 'Incorrect password.';
+      }
+
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(message)));
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
     }
   }
 
@@ -60,16 +75,15 @@ class _LoginScreenState extends State<LoginScreen> {
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
-        toolbarHeight: 160.0, // Increased significantly
+        toolbarHeight: 160.0,
       ),
       body: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 24.0),
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.start,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Padding(
-              padding: const EdgeInsets.only(top: 40.0), // Further adjustment
+              padding: const EdgeInsets.only(top: 40.0),
               child: Center(
                 child: Text(
                   'CamConnect',
@@ -81,23 +95,22 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
               ),
             ),
-            const SizedBox(height: 120), // Huge gap to push fields down
+            const SizedBox(height: 120),
             Expanded(
               child: SingleChildScrollView(
                 child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     TextFormField(
-                      controller: _usernameController,
+                      controller: _emailController,
                       decoration: InputDecoration(
-                        labelText: 'Username', // Back to labelText
-                        border: OutlineInputBorder( // Back to OutlineInputBorder
+                        labelText: 'Email',
+                        border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(10),
                           borderSide: BorderSide.none,
                         ),
                         filled: true,
                         fillColor: lightGray,
-                        prefixIcon: const Icon(Icons.person),
+                        prefixIcon: const Icon(Icons.email),
                       ),
                     ),
                     const SizedBox(height: 20),
@@ -105,8 +118,8 @@ class _LoginScreenState extends State<LoginScreen> {
                       controller: _passwordController,
                       obscureText: true,
                       decoration: InputDecoration(
-                        labelText: 'Password', // Back to labelText
-                        border: OutlineInputBorder( // Back to OutlineInputBorder
+                        labelText: 'Password',
+                        border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(10),
                           borderSide: BorderSide.none,
                         ),
@@ -116,18 +129,21 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                     ),
                     const SizedBox(height: 60),
-                    ElevatedButton(
-                      onPressed: _login,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: deepPurple,
-                        foregroundColor: Colors.white,
-                        minimumSize: const Size(double.infinity, 50),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(25),
-                        ),
-                      ),
-                      child: const Text('Login', style: TextStyle(fontSize: 18)),
-                    ),
+                    _isLoading
+                        ? const CircularProgressIndicator()
+                        : ElevatedButton(
+                            onPressed: _login,
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: deepPurple,
+                              foregroundColor: Colors.white,
+                              minimumSize: const Size(double.infinity, 50),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(25),
+                              ),
+                            ),
+                            child: const Text('Login',
+                                style: TextStyle(fontSize: 18)),
+                          ),
                     const SizedBox(height: 20),
                     ElevatedButton(
                       onPressed: () {
@@ -145,7 +161,8 @@ class _LoginScreenState extends State<LoginScreen> {
                           borderRadius: BorderRadius.circular(25),
                         ),
                       ),
-                      child: const Text('Sign Up', style: TextStyle(fontSize: 18)),
+                      child:
+                          const Text('Sign Up', style: TextStyle(fontSize: 18)),
                     ),
                   ],
                 ),
