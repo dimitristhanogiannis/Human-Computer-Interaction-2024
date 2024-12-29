@@ -16,10 +16,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
   String username = "DefaultUsername";
   String bio = "This is my bio";
   String age = "Select your age";
-  String _sex = 'change your sex';
+  String _sex = 'Change your sex';
   String _preference = 'Change your preference';
   String _location = 'Location: Enabled';
   File? _profilePicture;
+  String? _profilePhotoUrl;
 
   @override
   void initState() {
@@ -27,7 +28,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
     _loadUserInfo();
   }
 
-  // Load user information from Firebase
   Future<void> _loadUserInfo() async {
     try {
       final userId = FirebaseAuth.instance.currentUser!.uid;
@@ -44,9 +44,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           age = data['age'] ?? age;
           _sex = data['sex'] ?? _sex;
           _preference = data['preference'] ?? _preference;
-          if (data['profilePicture'] != null) {
-            // Handle profile picture loading logic here if necessary
-          }
+          _profilePhotoUrl = data['profilePhoto'];
         });
       }
     } catch (e) {
@@ -54,7 +52,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
     }
   }
 
-  // Update user information in Firebase
   Future<void> _updateUserInfo(String field, String value) async {
     try {
       final userId = FirebaseAuth.instance.currentUser!.uid;
@@ -74,30 +71,32 @@ class _SettingsScreenState extends State<SettingsScreen> {
     }
   }
 
-  // Upload profile picture to Firebase Storage
   Future<void> _uploadProfilePicture(File file) async {
     try {
       final userId = FirebaseAuth.instance.currentUser!.uid;
       final storageRef =
-          FirebaseStorage.instance.ref().child('profile_pictures/$userId.jpg');
+          FirebaseStorage.instance.ref().child('profile_photos/$userId.jpg');
 
       await storageRef.putFile(file);
 
       final downloadUrl = await storageRef.getDownloadURL();
-      await _updateUserInfo('profilePicture', downloadUrl);
+      await _updateUserInfo('profilePhoto', downloadUrl);
+
+      setState(() {
+        _profilePhotoUrl = downloadUrl;
+      });
 
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text('Profile picture uploaded successfully!'),
+        content: Text('Profile photo uploaded successfully!'),
       ));
     } catch (e) {
-      print('Error uploading profile picture: $e');
+      print('Error uploading profile photo: $e');
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text('Error uploading profile picture: $e'),
+        content: Text('Error uploading profile photo: $e'),
       ));
     }
   }
 
-  // Function to get location
   Future<void> _getLocation() async {
     bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
 
@@ -147,14 +146,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         desiredAccuracy: LocationAccuracy.high,
       );
 
-      setState(() {
-        _location = 'Location: Enabled';
-      });
-
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text(
-            'Location retrieved: Lat: ${position.latitude}, Lon: ${position.longitude}'),
-      ));
+      _updateUserLocation(true, position.latitude, position.longitude);
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
         content: Text('Error retrieving location: $e'),
@@ -163,7 +155,42 @@ class _SettingsScreenState extends State<SettingsScreen> {
     }
   }
 
-  // Function to pick an image using image picker
+  Future<void> _updateUserLocation(
+      bool useLocation, double latitude, double longitude) async {
+    try {
+      final userId = FirebaseAuth.instance.currentUser!.uid;
+      final userDoc =
+          FirebaseFirestore.instance.collection('users').doc(userId);
+
+      String latDirection = latitude >= 0 ? 'N' : 'S';
+      String lonDirection = longitude >= 0 ? 'E' : 'W';
+
+      await userDoc.update({
+        'useLocation': useLocation,
+        'location': useLocation
+            ? '[$latitude° $latDirection, $longitude° $lonDirection]'
+            : FieldValue.delete(),
+      });
+
+      if (mounted) {
+        setState(() {
+          _location = useLocation ? 'Location: Enabled' : 'Location: Disabled';
+        });
+      }
+
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text(useLocation
+            ? 'Location enabled and saved.'
+            : 'Location disabled.'),
+      ));
+    } catch (e) {
+      print('Error updating location: $e');
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text('Error updating location: $e'),
+      ));
+    }
+  }
+
   Future<void> _pickImage() async {
     try {
       final pickedImage = await ImagePicker().pickImage(
@@ -222,8 +249,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 radius: 50,
                 backgroundImage: _profilePicture != null
                     ? FileImage(_profilePicture!)
-                    : const AssetImage('assets/default_avatar.png')
-                        as ImageProvider,
+                    : (_profilePhotoUrl != null
+                        ? NetworkImage(_profilePhotoUrl!)
+                        : const AssetImage('assets/default_avatar.png')
+                            as ImageProvider),
                 child: _profilePicture == null
                     ? const Icon(Icons.camera_alt,
                         size: 50, color: Colors.white)
@@ -318,8 +347,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 Center(
                   child: ElevatedButton(
                     onPressed: () {
-                      FirebaseAuth.instance.signOut();
-                      Navigator.pushReplacementNamed(context, '/login');
+                      FirebaseAuth.instance.signOut().then((_) {
+                        if (!mounted) return;
+                        Navigator.of(context).pushNamedAndRemoveUntil(
+                          '/login',
+                          (route) => false,
+                        );
+                      }).catchError((error) {
+                        if (!mounted) return;
+                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                          content: Text('Error logging out: $error'),
+                        ));
+                      });
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: deepPurple,
@@ -396,17 +435,18 @@ class _SettingsOption extends StatelessWidget {
   final VoidCallback? onTap;
   final Widget? trailing;
 
-  const _SettingsOption({required this.title, this.onTap, this.trailing});
+  const _SettingsOption({
+    required this.title,
+    this.onTap,
+    this.trailing,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      margin: const EdgeInsets.symmetric(vertical: 8),
-      child: ListTile(
-        title: Text(title),
-        trailing: trailing ?? const Icon(Icons.arrow_forward_ios),
-        onTap: onTap,
-      ),
+    return ListTile(
+      title: Text(title),
+      onTap: onTap,
+      trailing: trailing,
     );
   }
 }

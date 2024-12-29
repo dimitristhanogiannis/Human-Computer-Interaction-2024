@@ -1,61 +1,53 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:camconnect/matches.dart';
 import 'package:camconnect/settings.dart';
 import 'package:camconnect/swipes.dart';
 import 'package:flutter/material.dart';
 
 class LeaderboardScreen extends StatelessWidget {
-  final List<Map<String, dynamic>> leaderboardData = [
-    {
-      "name": "Alex",
-      "points": 1200,
-      "image": "assets/user1.jpg",
-      "isCurrentUser": false
-    },
-    {
-      "name": "Jordan",
-      "points": 1150,
-      "image": "assets/user2.jpg",
-      "isCurrentUser": false
-    },
-    {
-      "name": "Taylor",
-      "points": 1100,
-      "image": "assets/user3.jpg",
-      "isCurrentUser": false
-    },
-    {
-      "name": "Morgan",
-      "points": 1050,
-      "image": "assets/user4.jpg",
-      "isCurrentUser": false
-    },
-    {
-      "name": "Chris",
-      "points": 1020,
-      "image": "assets/user5.jpg",
-      "isCurrentUser": false
-    },
-    {
-      "name": "Sam",
-      "points": 980,
-      "image": "assets/user6.jpg",
-      "isCurrentUser": true
-    },
-    {
-      "name": "Jamie",
-      "points": 950,
-      "image": "assets/user7.jpg",
-      "isCurrentUser": false
-    },
-    {
-      "name": "Pat",
-      "points": 920,
-      "image": "assets/user8.jpg",
-      "isCurrentUser": false
-    },
-  ];
-
   static const Color deepPurple = Color(0xFF7B1FA2);
+
+  Future<List<Map<String, dynamic>>> fetchLeaderboardData() async {
+    final firestore = FirebaseFirestore.instance;
+    final auth = FirebaseAuth.instance;
+
+    // Get all users from Firestore and order by score
+    final querySnapshot =
+        await firestore.collection('users').orderBy('score', descending: true).get();
+
+    // For each user, add 10 points for every like in likesReceived attribute
+    for (var doc in querySnapshot.docs) {
+      final userData = doc.data();
+      final likesReceived = userData['likesReceived'] ?? [];
+      final currentScore = userData['score'] ?? 0;
+
+      // Ensure likesReceived is a list (in case it's not initialized)
+      if (likesReceived is List) {
+        // Calculate points based on likesReceived length
+        int calculatedPoints = likesReceived.length * 10;
+
+        // Only update score if it's different from the calculated points
+        if (currentScore != calculatedPoints) {
+          // Update the Firestore document with new points
+          await firestore.collection('users').doc(doc.id).update({
+            'score': calculatedPoints, // Set score based on likesReceived
+          });
+        }
+      }
+    }
+
+    // Return leaderboard data to be displayed
+    return querySnapshot.docs.map((doc) {
+      final data = doc.data();
+      return {
+        "name": "${data['firstName']} ${data['lastName']}",
+        "points": data['score'], // Display the updated score
+        "image": data['profilePhoto'] ?? 'assets/default_profile.png',
+        "isCurrentUser": doc.id == auth.currentUser?.uid,
+      };
+    }).toList();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -79,73 +71,87 @@ class LeaderboardScreen extends StatelessWidget {
           },
         ),
       ),
-      body: ListView.builder(
-        padding: const EdgeInsets.all(16.0),
-        itemCount: leaderboardData.length,
-        itemBuilder: (context, index) {
-          final user = leaderboardData[index];
-          return Card(
-            color: user["isCurrentUser"] ? Colors.blue.shade100 : Colors.white,
-            margin: const EdgeInsets.symmetric(vertical: 8),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
-              child: Row(
-                children: [
-                  // User name with more space
-                  Expanded(
-                    flex: 3,
-                    child: Container(
-                      decoration: BoxDecoration(
-                        color: deepPurple,
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      padding: const EdgeInsets.symmetric(
-                          vertical: 8, horizontal: 16),
-                      child: Text(
-                        user["name"],
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 16, // Slightly reduced font size
-                          fontWeight: FontWeight.bold,
+      body: FutureBuilder<List<Map<String, dynamic>>>(
+        future: fetchLeaderboardData(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          } else if (snapshot.hasError) {
+            return Center(child: Text('Error: ${snapshot.error}'));
+          } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+            return const Center(child: Text('No leaderboard data available.'));
+          }
+
+          final leaderboardData = snapshot.data!;
+          return ListView.builder(
+            padding: const EdgeInsets.all(16.0),
+            itemCount: leaderboardData.length,
+            itemBuilder: (context, index) {
+              final user = leaderboardData[index];
+              return Card(
+                color: user["isCurrentUser"] ? Colors.blue.shade100 : Colors.white,
+                margin: const EdgeInsets.symmetric(vertical: 8),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+                  child: Row(
+                    children: [
+                      // User name with more space
+                      Expanded(
+                        flex: 3,
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: deepPurple,
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          padding: const EdgeInsets.symmetric(
+                              vertical: 8, horizontal: 16),
+                          child: Text(
+                            user["name"],
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 16, // Slightly reduced font size
+                              fontWeight: FontWeight.bold,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
                         ),
-                        textAlign: TextAlign.center,
                       ),
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                  // User image in the center
-                  Expanded(
-                    flex: 2,
-                    child: CircleAvatar(
-                      radius: 40,
-                      backgroundImage: AssetImage(user["image"]),
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                  // User score with more space
-                  Expanded(
-                    flex: 3,
-                    child: Container(
-                      decoration: BoxDecoration(
-                        color: deepPurple,
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      padding: const EdgeInsets.symmetric(
-                          vertical: 8, horizontal: 16),
-                      child: Text(
-                        '${user["points"]} pts',
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 16, // Slightly reduced font size
-                          fontWeight: FontWeight.bold,
+                      const SizedBox(width: 16),
+                      // User image in the center
+                      Expanded(
+                        flex: 2,
+                        child: CircleAvatar(
+                          radius: 40,
+                          backgroundImage: NetworkImage(user["image"]),
                         ),
-                        textAlign: TextAlign.center,
                       ),
-                    ),
+                      const SizedBox(width: 16),
+                      // User score with more space
+                      Expanded(
+                        flex: 3,
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: deepPurple,
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          padding: const EdgeInsets.symmetric(
+                              vertical: 8, horizontal: 16),
+                          child: Text(
+                            '${user["points"]} pts',
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 16, // Slightly reduced font size
+                              fontWeight: FontWeight.bold,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
-                ],
-              ),
-            ),
+                ),
+              );
+            },
           );
         },
       ),
