@@ -38,23 +38,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
       if (userDoc.exists) {
         final data = userDoc.data()!;
+
         setState(() {
-          username = data['username'] ?? username;
-          bio = data['bio'] ?? bio;
-          age = data['age'] ?? age;
-          _sex = data['sex'] ?? _sex;
-          _preference = data['preference'] ?? _preference;
-          _profilePhotoUrl = data['profilePhoto'];
+          // Safely retrieve and cast values
+          username = data['username']?.toString() ?? username;
+          bio = data['bio']?.toString() ?? bio;
+          age = data['age']?.toString() ?? age;
+          _sex = data['sex']?.toString() ?? _sex;
+          _preference = data['preference']?.toString() ?? _preference;
+          _profilePhotoUrl = data['profilePhoto']?.toString();
           useLocation = data['useLocation'] ?? useLocation;
           _location = useLocation ? 'Location: Enabled' : 'Location: Disabled';
-        });
-      } else {
-        setState(() {
-          username = username;
-          bio = bio;
-          age = age;
-          _sex = _sex;
-          _preference = _preference;
         });
       }
     } catch (e) {
