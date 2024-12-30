@@ -353,8 +353,7 @@ class _SwipePageState extends State<SwipePage> {
                                 ClipRRect(
                                   borderRadius: BorderRadius.circular(12),
                                   child: Image.network(
-                                    user["profilePhoto"] ??
-                                        'https://via.placeholder.com/150',
+                                    user["profilePhoto"] ?? 'https://via.placeholder.com/150',
                                     height: 250,
                                     width: double.infinity,
                                     fit: BoxFit.cover,
@@ -443,11 +442,25 @@ class _SwipePageState extends State<SwipePage> {
                   ],
                 ),
       bottomNavigationBar: BottomNavigationBar(
-        selectedItemColor: deepPurple,
-        unselectedItemColor: Colors.grey,
+        selectedItemColor: Colors.white,
+        unselectedItemColor: deepPurple,
         items: [
-          const BottomNavigationBarItem(
-            icon: Icon(Icons.favorite, size: 24),
+          BottomNavigationBarItem(
+            icon: ClipRRect(
+              borderRadius: BorderRadius.circular(50),
+              child: Container(
+                height: 40,
+                width: 80,
+                color: deepPurple, // Added deep purple background with rounded edges
+                child: const Center(
+                  child: Icon(
+                    Icons.favorite,
+                    color: Colors.white,
+                    size: 24,
+                  ),
+                ),
+              ),
+            ),
             label: "",
           ),
           const BottomNavigationBarItem(
