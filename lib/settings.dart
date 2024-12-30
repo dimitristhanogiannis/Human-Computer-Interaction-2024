@@ -45,12 +45,23 @@ class _SettingsScreenState extends State<SettingsScreen> {
           _sex = data['sex'] ?? _sex;
           _preference = data['preference'] ?? _preference;
           _profilePhotoUrl = data['profilePhoto'];
-          useLocation = data['useLocation'] ?? true;
+          useLocation = data['useLocation'] ?? useLocation;
           _location = useLocation ? 'Location: Enabled' : 'Location: Disabled';
+        });
+      } else {
+        setState(() {
+          username = username;
+          bio = bio;
+          age = age;
+          _sex = _sex;
+          _preference = _preference;
         });
       }
     } catch (e) {
       print('Error loading user info: $e');
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text('Error loading user info: $e'),
+      ));
     }
   }
 
