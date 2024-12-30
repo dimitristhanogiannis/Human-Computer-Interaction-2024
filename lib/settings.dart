@@ -45,6 +45,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
           _sex = data['sex'] ?? _sex;
           _preference = data['preference'] ?? _preference;
           _profilePhotoUrl = data['profilePhoto'];
+          useLocation = data['useLocation'] ?? true;
+          _location = useLocation ? 'Location: Enabled' : 'Location: Disabled';
         });
       }
     } catch (e) {
@@ -52,7 +54,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     }
   }
 
-  Future<void> _updateUserInfo(String field, String value) async {
+  Future<void> _updateUserInfo(String field, dynamic value) async {
     try {
       final userId = FirebaseAuth.instance.currentUser!.uid;
       final userDoc =
@@ -191,6 +193,21 @@ class _SettingsScreenState extends State<SettingsScreen> {
     }
   }
 
+  Future<void> _toggleLocation(bool value) async {
+    setState(() {
+      useLocation = value;
+      _location = value ? 'Location: Enabled' : 'Location: Disabled';
+    });
+
+    if (value) {
+      await _getLocation();
+    } else {
+      await _updateUserLocation(false, 0.0, 0.0);
+    }
+
+    await _updateUserInfo('useLocation', value);
+  }
+
   Future<void> _pickImage() async {
     try {
       final pickedImage = await ImagePicker().pickImage(
@@ -269,17 +286,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   title: _location,
                   trailing: Switch(
                     value: useLocation,
-                    onChanged: (bool value) {
-                      setState(() {
-                        useLocation = value;
-                        if (useLocation) {
-                          _location = 'Location: Enabled';
-                          _getLocation();
-                        } else {
-                          _location = 'Location: Disabled';
-                        }
-                      });
-                    },
+                    onChanged: _toggleLocation,
                     activeColor: deepPurple,
                   ),
                 ),
