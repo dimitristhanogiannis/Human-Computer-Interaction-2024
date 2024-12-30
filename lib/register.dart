@@ -154,10 +154,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
           'location': geoLocation ?? 'Location not provided',
           'profilePhoto': profilePhotoUrl,
           'useLocation': useLocation,
-          'swipes': {
-            'liked': [],
-            'disliked': [],
-          },
+          'like': [],
+          'dislike': [],
           'matches': [],
           'score': 0,
         });
