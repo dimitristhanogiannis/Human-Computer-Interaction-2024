@@ -16,33 +16,12 @@ class LeaderboardScreen extends StatelessWidget {
     final querySnapshot =
         await firestore.collection('users').orderBy('score', descending: true).get();
 
-    // For each user, add 10 points for every like in likesReceived attribute
-    for (var doc in querySnapshot.docs) {
-      final userData = doc.data();
-      final likesReceived = userData['likesReceived'] ?? [];
-      final currentScore = userData['score'] ?? 0;
-
-      // Ensure likesReceived is a list (in case it's not initialized)
-      if (likesReceived is List) {
-        // Calculate points based on likesReceived length
-        int calculatedPoints = likesReceived.length * 10;
-
-        // Only update score if it's different from the calculated points
-        if (currentScore != calculatedPoints) {
-          // Update the Firestore document with new points
-          await firestore.collection('users').doc(doc.id).update({
-            'score': calculatedPoints, // Set score based on likesReceived
-          });
-        }
-      }
-    }
-
     // Return leaderboard data to be displayed
     return querySnapshot.docs.map((doc) {
       final data = doc.data();
       return {
         "name": "${data['firstName']} ${data['lastName']}",
-        "points": data['score'], // Display the updated score
+        "points": data['score'], // Display the score directly from Firestore
         "image": data['profilePhoto'] ?? 'assets/default_profile.png',
         "isCurrentUser": doc.id == auth.currentUser?.uid,
       };
@@ -71,7 +50,7 @@ class LeaderboardScreen extends StatelessWidget {
           },
         ),
       ),
-      body: FutureBuilder<List<Map<String, dynamic>>>(
+      body: FutureBuilder<List<Map<String, dynamic>>>( 
         future: fetchLeaderboardData(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
