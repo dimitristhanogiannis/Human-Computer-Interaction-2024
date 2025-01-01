@@ -43,32 +43,38 @@ Future<void> initialize() async {
     });
 
     // Handle foreground messages
-FirebaseMessaging.onMessage.listen((RemoteMessage message) async{
-  print("Foreground message received: ${message.notification}");
+FirebaseMessaging.onMessage.listen((RemoteMessage message) async {
+  print("Foreground message received: ${message.data}");  // Debug print
 
-  if (message.data != null) {
-    final type = message.data['type'] ?? ''; // Handle null case safely
-    if (type == 'video_call') {
-      print('Foreground Video Call: ${message.data}');
-      final callerDoc = await FirebaseFirestore.instance
-          .collection('users')
-          .doc(message.data['callerId'])
-          .get();
-      
-      final callerName = callerDoc.data()?['username'] ?? 'Unknown';
-      // Show your custom video call dialog
+  if (message.data != null && message.data['type'] == 'video_call') {
+    print('Video Call Data: ${message.data}');  // Debug print
+    
+    final callerDoc = await FirebaseFirestore.instance
+        .collection('users')
+        .doc(message.data['callerId'])
+        .get();
+    
+    final callerName = callerDoc.data()?['username'] ?? 'Unknown';
+    
+    if (navigatorKey.currentContext != null) {
       showDialog(
         context: navigatorKey.currentContext!,
+        barrierDismissible: false,  // Prevent dismissing by tapping outside
         builder: (_) => AlertDialog(
           title: Text('Incoming Video Call'),
-          content: Text('$callerName is calling you'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text('$callerName is calling you'),
+              Text('Channel: ${message.data['videoChannel']}'),  // Debug info
+            ],
+          ),
           actions: [
             TextButton(
               onPressed: () {
-                // Accept call
-                Navigator.pop(_); // Close the dialog
-                // Navigate to call screen or handle it
-             Navigator.push(
+                Navigator.pop(_);
+                print('Joining channel: ${message.data['videoChannel']}');  // Debug print
+                Navigator.push(
                   navigatorKey.currentContext!,
                   MaterialPageRoute(
                     builder: (context) => VideoCallPage(
@@ -81,14 +87,12 @@ FirebaseMessaging.onMessage.listen((RemoteMessage message) async{
               child: Text('Accept'),
             ),
             TextButton(
-  onPressed: () async {
-    // Close the dialog
-    Navigator.pop(_);
-
-    // Send decline notification to the server
-  },
-  child: Text('Decline'),
-)
+              onPressed: () {
+                Navigator.pop(_);
+                // Add decline notification logic here if needed
+              },
+              child: Text('Decline'),
+            ),
           ],
         ),
       );
@@ -147,19 +151,20 @@ Future<void> sendVideoCallNotification({
         .collection('users')
         .doc(receiverId)
         .get();
-    
+
     final receiverFCMToken = receiverDoc.data()?['fcmToken'];
     if (receiverFCMToken == null) {
       print('Receiver FCM token not found');
       return;
     }
 
-    // Get caller's name (check if user is logged in)
+    // Get caller's name
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) {
       print('User is not logged in');
-      return; // Or throw an error
+      return;
     }
+
     final callerName = (await FirebaseFirestore.instance
         .collection('users')
         .doc(user.uid)
@@ -168,7 +173,7 @@ Future<void> sendVideoCallNotification({
 
     // Send FCM notification using Firebase Admin SDK on your server
     final response = await http.post(
-      Uri.parse('http::/dimkar12.pythonanywhere.com/send_notification'), // Replace with your server endpoint
+      Uri.parse('http://dimkar12.pythonanywhere.com/send_notification'), // Correct URL
       headers: {
         'Content-Type': 'application/json',
       },
@@ -196,6 +201,7 @@ Future<void> sendVideoCallNotification({
     print('Error sending notification: $e');
   }
 }
+
 
 
 }
