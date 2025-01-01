@@ -168,7 +168,7 @@ Future<void> sendVideoCallNotification({
 
     // Send FCM notification using Firebase Admin SDK on your server
     final response = await http.post(
-      Uri.parse('http://192.168.1.5:5000/send_notification'), // Replace with your server endpoint
+      Uri.parse('http::/dimkar12.pythonanywhere.com/send_notification'), // Replace with your server endpoint
       headers: {
         'Content-Type': 'application/json',
       },
