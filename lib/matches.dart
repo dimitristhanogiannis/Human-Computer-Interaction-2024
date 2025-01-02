@@ -7,7 +7,12 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:camconnect/video_call_page.dart';
+import 'package:camconnect/notification_service.dart';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
 import 'dart:async';
+
+final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
 class MatchesScreen extends StatefulWidget {
   const MatchesScreen({Key? key}) : super(key: key);
@@ -116,9 +121,8 @@ class _MatchesScreenState extends State<MatchesScreen> {
     }
   }
 
-  Future<void> _startVideoCall(String matchName) async {
+  Future<void> _startVideoCall(String matchId, String matchName) async {
     try {
-      // Make POST request to create channel
       final response = await http.post(
         Uri.parse('http://dimkar12.pythonanywhere.com/create_channel'),
         headers: {'Content-Type': 'application/json'},
@@ -127,6 +131,13 @@ class _MatchesScreenState extends State<MatchesScreen> {
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
         if (data['success'] == true) {
+          await NotificationService(navigatorKey: navigatorKey)
+              .sendVideoCallNotification(
+            receiverId: matchId,
+            channelName: data['channel_name'],
+            token: data['token'],
+          );
+
           Navigator.push(
             context,
             MaterialPageRoute(
@@ -136,21 +147,10 @@ class _MatchesScreenState extends State<MatchesScreen> {
               ),
             ),
           );
-        } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-                content: Text('Failed to create channel: ${data['error']}')),
-          );
         }
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Failed to connect to server')),
-        );
       }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error: $e')),
-      );
+      print('Error: $e');
     }
   }
 
@@ -201,8 +201,8 @@ class _MatchesScreenState extends State<MatchesScreen> {
                         name: matches[index]['name'],
                         image: matches[index]['image'],
                         onDelete: () => _deleteMatch(matches[index]['id']),
-                        onVideoCall: () =>
-                            _startVideoCall(matches[index]['name']),
+                        onVideoCall: () => _startVideoCall(
+                            matches[index]['id'], matches[index]['name']),
                       );
                     },
                   ),

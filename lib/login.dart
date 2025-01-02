@@ -2,6 +2,8 @@ import 'package:camconnect/swipes.dart';
 import 'package:flutter/material.dart';
 import 'register.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -52,6 +54,17 @@ class _LoginScreenState extends State<LoginScreen> {
         password: password,
       );
 
+      // Get the FCM token
+      String? token = await FirebaseMessaging.instance.getToken(); 
+
+      // Save the token to Firestore
+      if (token != null) {
+        await FirebaseFirestore.instance
+            .collection('users') // Choose your collection name
+            .doc(auth.currentUser!.uid)
+            .set({'fcmToken': token}, SetOptions(merge: true)); 
+      }
+
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Login successful!')),
       );
@@ -82,7 +95,6 @@ class _LoginScreenState extends State<LoginScreen> {
       });
     }
   }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
