@@ -8,8 +8,6 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:camconnect/video_call_page.dart';
 import 'package:camconnect/notification_service.dart';
-import 'dart:convert';
-import 'package:http/http.dart' as http;
 import 'dart:async';
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();

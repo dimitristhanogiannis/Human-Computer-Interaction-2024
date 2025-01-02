@@ -5,6 +5,7 @@ import 'dart:io';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:camconnect/login.dart';
 
 class SettingsScreen extends StatefulWidget {
   @override
@@ -186,9 +187,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
       }
 
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text(useLocation
-            ? 'Location enabled and saved.'
-            : 'Location disabled.'),
+        content: Text(
+            useLocation ? 'Location enabled and saved.' : 'Location disabled.'),
       ));
     } catch (e) {
       print('Error updating location: $e');
@@ -359,18 +359,45 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 Center(
                   child: ElevatedButton(
                     onPressed: () {
-                      FirebaseAuth.instance.signOut().then((_) {
-                        if (!mounted) return;
-                        Navigator.of(context).pushNamedAndRemoveUntil(
-                          '/login',
-                          (route) => false,
-                        );
-                      }).catchError((error) {
-                        if (!mounted) return;
-                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                          content: Text('Error logging out: $error'),
-                        ));
-                      });
+                      showDialog(
+                        context: context,
+                        builder: (context) => AlertDialog(
+                          title: Text('Logout'),
+                          content: Text('Are you sure you want to log out?'),
+                          actions: [
+                            TextButton(
+                              onPressed: () =>
+                                  Navigator.pop(context), // Close dialog
+                              child: Text('Cancel'),
+                            ),
+                            TextButton(
+                              onPressed: () {
+                                FirebaseAuth.instance.signOut().then((_) {
+                                  print('User signed out successfully');
+                                  if (!mounted) return;
+                                  Navigator.of(context).pushAndRemoveUntil(
+                                    MaterialPageRoute(builder: (context) {
+                                      print('Navigating to LoginScreen');
+                                      return LoginScreen();
+                                    }),
+                                    (route) => false,
+                                  );
+                                }).catchError((error) {
+                                  print('Error logging out: $error');
+                                  if (!mounted) return;
+                                  ScaffoldMessenger.of(context)
+                                      .showSnackBar(SnackBar(
+                                    content: Text('Error logging out: $error'),
+                                  ));
+                                });
+
+                                Navigator.pop(context); // Close dialog
+                              },
+                              child: Text('Logout'),
+                            ),
+                          ],
+                        ),
+                      );
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: deepPurple,

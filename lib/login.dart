@@ -55,14 +55,14 @@ class _LoginScreenState extends State<LoginScreen> {
       );
 
       // Get the FCM token
-      String? token = await FirebaseMessaging.instance.getToken(); 
+      String? token = await FirebaseMessaging.instance.getToken();
 
       // Save the token to Firestore
       if (token != null) {
         await FirebaseFirestore.instance
             .collection('users') // Choose your collection name
             .doc(auth.currentUser!.uid)
-            .set({'fcmToken': token}, SetOptions(merge: true)); 
+            .set({'fcmToken': token}, SetOptions(merge: true));
       }
 
       ScaffoldMessenger.of(context).showSnackBar(
@@ -95,6 +95,7 @@ class _LoginScreenState extends State<LoginScreen> {
       });
     }
   }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
