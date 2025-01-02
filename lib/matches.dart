@@ -7,8 +7,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:camconnect/video_call_page.dart';
-import 'dart:convert';
-import 'package:http/http.dart' as http;
 import 'dart:async';
 
 class MatchesScreen extends StatefulWidget {
@@ -22,7 +20,8 @@ class _MatchesScreenState extends State<MatchesScreen> {
   final String currentUserId = FirebaseAuth.instance.currentUser!.uid;
   List<Map<String, dynamic>> matches = [];
   bool isLoading = true;
-  StreamSubscription<DocumentSnapshot<Map<String, dynamic>>>? _matchesSubscription;
+  StreamSubscription<DocumentSnapshot<Map<String, dynamic>>>?
+      _matchesSubscription;
 
   @override
   void initState() {
@@ -32,47 +31,46 @@ class _MatchesScreenState extends State<MatchesScreen> {
 
 // Listen to changes in the user's matches list in Firestore
   void _listenToMatches() {
-  FirebaseFirestore.instance
-      .collection('users')
-      .doc(currentUserId)
-      .snapshots()
-      .listen((snapshot) async {
-    if (snapshot.exists) {
-      List<dynamic> matchIds = snapshot.data()!['matches'] ?? [];
-      if (matchIds.isEmpty) {
+    FirebaseFirestore.instance
+        .collection('users')
+        .doc(currentUserId)
+        .snapshots()
+        .listen((snapshot) async {
+      if (snapshot.exists) {
+        List<dynamic> matchIds = snapshot.data()!['matches'] ?? [];
+        if (matchIds.isEmpty) {
+          setState(() {
+            matches = [];
+            isLoading = false;
+          });
+          return;
+        }
+
+        final querySnapshot = await FirebaseFirestore.instance
+            .collection('users')
+            .where(FieldPath.documentId, whereIn: matchIds)
+            .get();
+
+        final matchData = querySnapshot.docs.map((doc) {
+          return {
+            'name': doc['username'] ?? 'Unknown',
+            'image': doc['profilePhoto'] ?? '',
+            'id': doc.id,
+          };
+        }).toList();
+
         setState(() {
-          matches = [];
+          matches = matchData;
           isLoading = false;
         });
-        return;
       }
-
-      final querySnapshot = await FirebaseFirestore.instance
-          .collection('users')
-          .where(FieldPath.documentId, whereIn: matchIds)
-          .get();
-
-      final matchData = querySnapshot.docs.map((doc) {
-        return {
-          'name': doc['username'] ?? 'Unknown',
-          'image': doc['profilePhoto'] ?? '',
-          'id': doc.id,
-        };
-      }).toList();
-
+    }, onError: (error) {
+      print('Error listening to matches: $error');
       setState(() {
-        matches = matchData;
         isLoading = false;
       });
-    }
-  }, onError: (error) {
-    print('Error listening to matches: $error');
-    setState(() {
-      isLoading = false;
     });
-  });
-}
-
+  }
 
   @override
   void dispose() {
@@ -80,44 +78,43 @@ class _MatchesScreenState extends State<MatchesScreen> {
     super.dispose();
   }
 
-  
-
   Future<void> _deleteMatch(String matchId) async {
-  try {
-    final currentUserRef = FirebaseFirestore.instance.collection('users').doc(currentUserId);
-    final matchUserRef = FirebaseFirestore.instance.collection('users').doc(matchId);
+    try {
+      final currentUserRef =
+          FirebaseFirestore.instance.collection('users').doc(currentUserId);
+      final matchUserRef =
+          FirebaseFirestore.instance.collection('users').doc(matchId);
 
-    // Update Firestore for both users
-    await FirebaseFirestore.instance.runTransaction((transaction) async {
-      // Remove match and add to dislikes
-      transaction.update(currentUserRef, {
-        'matches': FieldValue.arrayRemove([matchId]),
-        'dislike': FieldValue.arrayUnion([matchId]),
-        'like': FieldValue.arrayRemove([matchId]),
+      // Update Firestore for both users
+      await FirebaseFirestore.instance.runTransaction((transaction) async {
+        // Remove match and add to dislikes
+        transaction.update(currentUserRef, {
+          'matches': FieldValue.arrayRemove([matchId]),
+          'dislike': FieldValue.arrayUnion([matchId]),
+          'like': FieldValue.arrayRemove([matchId]),
+        });
+        transaction.update(matchUserRef, {
+          'matches': FieldValue.arrayRemove([currentUserId]),
+          'dislike': FieldValue.arrayUnion([currentUserId]),
+          'like': FieldValue.arrayRemove([currentUserId]),
+        });
       });
-      transaction.update(matchUserRef, {
-        'matches': FieldValue.arrayRemove([currentUserId]),
-        'dislike': FieldValue.arrayUnion([currentUserId]),
-        'like': FieldValue.arrayRemove([currentUserId]),
+
+      // Update local state
+      setState(() {
+        matches.removeWhere((match) => match['id'] == matchId);
       });
-    });
 
-    // Update local state
-    setState(() {
-      matches.removeWhere((match) => match['id'] == matchId);
-    });
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Match removed successfully')),
-    );
-  } catch (e) {
-    print('Error deleting match: $e');
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Error deleting match: $e')),
-    );
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Match removed successfully')),
+      );
+    } catch (e) {
+      print('Error deleting match: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error deleting match: $e')),
+      );
+    }
   }
-}
-
 
   Future<void> _startVideoCall(String matchName) async {
     try {
@@ -336,7 +333,6 @@ class MatchCard extends StatelessWidget {
                   ),
                   child: const Icon(Icons.videocam, color: Colors.white),
                 ),
-
                 ElevatedButton(
                   onPressed: onDelete,
                   style: ElevatedButton.styleFrom(
