@@ -102,6 +102,7 @@ class _MatchesScreenState extends State<MatchesScreen> {
           'matches': FieldValue.arrayRemove([currentUserId]),
           'dislike': FieldValue.arrayUnion([currentUserId]),
           'like': FieldValue.arrayRemove([currentUserId]),
+          'score': FieldValue.increment(-5),
         });
       });
 
@@ -214,15 +215,31 @@ class _MatchesScreenState extends State<MatchesScreen> {
         currentIndex: 1,
         onTap: (index) {
           if (index == 0) {
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(builder: (context) => SwipePage()),
+              Navigator.pushReplacement(
+        context,
+        PageRouteBuilder(
+          pageBuilder: (context, animation, secondaryAnimation) => SwipePage(),
+          transitionsBuilder: (context, animation, secondaryAnimation, child) {
+            return FadeTransition(
+              opacity: animation,
+              child: child,
             );
+          },
+        ),
+      );
           } else if (index == 2) {
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(builder: (context) => LeaderboardScreen()),
+                Navigator.pushReplacement(
+        context,
+        PageRouteBuilder(
+          pageBuilder: (context, animation, secondaryAnimation) => LeaderboardScreen(),
+          transitionsBuilder: (context, animation, secondaryAnimation, child) {
+            return FadeTransition(
+              opacity: animation,
+              child: child,
             );
+          },
+        ),
+      );
           }
         },
         items: [
