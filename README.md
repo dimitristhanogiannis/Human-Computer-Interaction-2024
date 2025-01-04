@@ -1,19 +1,17 @@
-CamConnect
-
 # camconnect
 
-A new Flutter project.
+Face the future of dating.
 
-## Getting Started
+Ας μη κρυβόμαστε πίσω από το δάκτυλό μας. Κανείς που αναζητά 
+μια σοβαρή σχέση δε τη βρίσκει ψάχνοντας για αυτό. Όλα 
+προκύπτουν. Εμείς βοηθάμε να προκύψουν. Δε σπαταλάμε χρόνο σε 
+απρόσωπα μηνύματα, αλλά μπαίνουμε κατευθείαν στο ψητό. 
+Βιντεοκλήσεις. Όπως θα γνώριζες κάποιον στην πραγματική ζωή. 
+Δώσε 5 λεπτά από το χρόνο σου και… ό,τι προκύψει!
 
-This project is a starting point for a Flutter application.
+## description
 
-A few resources to get you started if this is your first Flutter project:
+### installation
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
 
