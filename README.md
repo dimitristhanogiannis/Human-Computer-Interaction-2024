@@ -24,11 +24,13 @@
 user1:
 
 email: user1@gmail.com
+
 password: user1pass
 
 user2:
 
 email: user2@gmail.com
+
 password: user2pass
 
 ### SDK version
