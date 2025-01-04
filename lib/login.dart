@@ -55,14 +55,14 @@ class _LoginScreenState extends State<LoginScreen> {
       );
 
       // Get the FCM token
-      String? token = await FirebaseMessaging.instance.getToken(); 
+      String? token = await FirebaseMessaging.instance.getToken();
 
       // Save the token to Firestore
       if (token != null) {
         await FirebaseFirestore.instance
             .collection('users') // Choose your collection name
             .doc(auth.currentUser!.uid)
-            .set({'fcmToken': token}, SetOptions(merge: true)); 
+            .set({'fcmToken': token}, SetOptions(merge: true));
       }
 
       ScaffoldMessenger.of(context).showSnackBar(
@@ -95,6 +95,7 @@ class _LoginScreenState extends State<LoginScreen> {
       });
     }
   }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -112,14 +113,13 @@ class _LoginScreenState extends State<LoginScreen> {
             Padding(
               padding: const EdgeInsets.only(top: 40.0),
               child: Center(
-                child: Text(
-                  'CamConnect',
-                  style: TextStyle(
-                    fontSize: 36,
-                    fontWeight: FontWeight.w500,
-                    color: const Color(0xFF7B1FA2),
+                child: Center(
+                child: Image.asset(
+                  'assets/logo.png', // Path to your logo
+                   height: 100,       // Adjust size
                   ),
                 ),
+
               ),
             ),
             const SizedBox(height: 120),
@@ -163,7 +163,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           : ElevatedButton(
                               onPressed: _login,
                               style: ElevatedButton.styleFrom(
-                                backgroundColor: const Color(0xFF7B1FA2),
+                                backgroundColor: const Color.fromARGB(255, 123, 31, 162),
                                 foregroundColor: Colors.white,
                                 minimumSize: const Size(double.infinity, 50),
                                 shape: RoundedRectangleBorder(
