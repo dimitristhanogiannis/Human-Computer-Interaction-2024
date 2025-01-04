@@ -55,8 +55,10 @@ class _MatchesScreenState extends State<MatchesScreen> {
             .get();
 
         final matchData = querySnapshot.docs.map((doc) {
+          final firstName = doc['firstName'] ?? 'Unknown';
+          final lastName = doc['lastName'] ?? 'User';
           return {
-            'name': doc['username'] ?? 'Unknown',
+            'name': '$firstName $lastName',
             'image': doc['profilePhoto'] ?? '',
             'id': doc.id,
           };
@@ -164,6 +166,7 @@ class _MatchesScreenState extends State<MatchesScreen> {
           style: TextStyle(
             color: deepPurple,
             fontSize: 30,
+            fontWeight: FontWeight.bold,
           ),
         ),
         centerTitle: true,

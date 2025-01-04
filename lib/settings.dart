@@ -60,6 +60,28 @@ class _SettingsScreenState extends State<SettingsScreen> {
     }
   }
 
+  Future<void> _deleteFcmToken() async {
+  try {
+    final userId = FirebaseAuth.instance.currentUser!.uid;
+
+    // Remove the FCM token from Firestore
+    await FirebaseFirestore.instance
+        .collection('users')
+        .doc(userId)
+        .update({
+      'fcmToken': FieldValue.delete(), // Delete the FCM token field
+    });
+
+    print("FCM token deleted successfully.");
+  } catch (e) {
+    print("Error deleting FCM token: $e");
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+      content: Text('Error deleting FCM token: $e'),
+    ));
+  }
+}
+
+
   Future<void> _updateUserInfo(String field, dynamic value) async {
     try {
       final userId = FirebaseAuth.instance.currentUser!.uid;
@@ -371,9 +393,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
                               child: Text('Cancel'),
                             ),
                             TextButton(
-                              onPressed: () {
-                                FirebaseAuth.instance.signOut().then((_) {
+                              onPressed: () async{
+                                //await _deleteFcmToken();
+                                  _deleteFcmToken();
+                                  FirebaseAuth.instance.signOut().then((_) {
                                   print('User signed out successfully');
+                                  
                                   if (!mounted) return;
                                   Navigator.of(context).pushAndRemoveUntil(
                                     MaterialPageRoute(builder: (context) {
