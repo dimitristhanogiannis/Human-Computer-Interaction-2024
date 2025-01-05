@@ -36,5 +36,5 @@ password: user2pass
 ### SDK version
 
 Android SDK version 35.0.0
-Android image 15.0 x86_64
 
+Android image 15.0 x86_64
